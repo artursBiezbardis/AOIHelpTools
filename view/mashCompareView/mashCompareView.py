@@ -14,19 +14,31 @@ class MashCompare:
             sg.CB('Rotation', default=True),
             sg.CB('Side', default=True)
         ],
+        [
+            [sg.Input(key='-FILE1-'), sg.FileBrowse()],
+            [sg.Input(key='-FILE2-'), sg.FileBrowse()]
+        ],
         [sg.B('Compare Mash Files'), sg.Button('Cancel')]
     ]
 
     def __init__(self):
         self.view = ''
         self.window = createWindow.CreateWindow.create(self.title, self.layout)
-
+        self.window_hidden = False
     def run_window(self):
+        if self.window_hidden:
+
+            self.window.un_hide()
 
         while True:
             event, values = self.window.read()
-            if event == sg.WIN_CLOSED or event == 'Cancel' or event == 'Compare Mash':  # if user closes window or clicks cancel
+            if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
                 self.window.close()
                 break
+            elif event == 'Cancel':
+                self.view = 'main view'
+                self.window.hide()
+                self.window_hidden = True
+                break
+
             print('You entered ', values[0])
-        self.window.close()

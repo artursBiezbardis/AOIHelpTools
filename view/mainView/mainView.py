@@ -11,23 +11,29 @@ class MainView:
     def __init__(self):
         self.view = ''
         self.window = createWindow.CreateWindow.create(self.title, self.layout)
+        self.window_hidden = False
     def run_window(self):
 
         while True:
+
+            if self.window_hidden:
+
+                self.window.un_hide()
             event, values = self.window.read()
             if event == sg.WIN_CLOSED or event == 'Cancel':  # if user closes window or clicks cancel
-                self.window.close()
+                self.view = ''
+
                 break
 
             elif event == 'Compare Mash':
 
                 self.view = event
-                self.window.close()
+                self.window.hide()
+                self.window_hidden = True
                 break
 
             print('You entered ', values[0])
             self.window.close()
-
 
 
     def get_event(self):
