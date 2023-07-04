@@ -10,8 +10,6 @@ while view:
     if view == 'main view':
         mainView.run_window()
         view = mainView.view
-        test = "test"
     elif view == 'Compare Mash':
-        while view == 'Compare Mash':
-            if view == 'Compare Mash':
-                mashCompareView.run_window()
+        mashCompareView.run_window()
+        view = mashCompareView.view

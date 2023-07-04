@@ -19,17 +19,14 @@ class MashCompare:
 
     def __init__(self):
         self.view = ''
+        self.window = createWindow.CreateWindow.create(self.title, self.layout)
 
     def run_window(self):
-        test = sg
-
-        window = createWindow.CreateWindow.create(self.title, self.layout)
 
         while True:
-            event, values = window.read()
+            event, values = self.window.read()
             if event == sg.WIN_CLOSED or event == 'Cancel' or event == 'Compare Mash':  # if user closes window or clicks cancel
-                window.close()
+                self.window.close()
                 break
-
             print('You entered ', values[0])
-        window.close()
+        self.window.close()
