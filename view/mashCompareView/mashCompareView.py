@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import createWindow as createWindow
+#import mashCompareResultsView as results
 
 class MashCompare:
     title = 'Select data and files to compare'
@@ -15,10 +16,10 @@ class MashCompare:
             sg.CB('Side', default=True)
         ],
         [
-            [sg.Input(key='-FILE1-'), sg.FileBrowse()],
-            [sg.Input(key='-FILE2-'), sg.FileBrowse()]
+            [sg.Input(key='-FILE1-'), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))],
+            [sg.Input(key='-FILE2-'), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))]
         ],
-        [sg.B('Compare Mash Files'), sg.Button('Cancel')]
+        [sg.B('Compare Mash Files', disabled=True), sg.Button('Cancel')]
     ]
 
     def __init__(self):
@@ -40,5 +41,6 @@ class MashCompare:
                 self.window.hide()
                 self.window_hidden = True
                 break
+           # elif event == "Compare Mash Files":
 
             print('You entered ', values[0])
