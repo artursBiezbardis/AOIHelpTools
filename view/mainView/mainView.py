@@ -6,7 +6,8 @@ class MainView:
     title: str = 'main view'
     button1Title: str = 'Compare Mash'
     buttonCancelTitle: str = 'Cancel'
-    layout: [[sg.Button]] = [[sg.Button(button1Title), sg.Button(buttonCancelTitle)]]
+    button2Title: str = 'Find Recipes by Part'
+    layout: [[sg.Button]] = [[sg.Button(button1Title), sg.Button(button2Title), sg.Button(buttonCancelTitle)]]
 
     def __init__(self):
         self.view = ''
@@ -26,6 +27,13 @@ class MainView:
                 break
 
             elif event == 'Compare Mash':
+
+                self.view = event
+                self.window.hide()
+                self.window_hidden = True
+                break
+                
+            elif event == 'Find Recipes by Part':
 
                 self.view = event
                 self.window.hide()
