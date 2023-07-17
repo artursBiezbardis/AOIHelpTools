@@ -10,7 +10,7 @@ class FindRecipesByPartView:
                 sg.Input(key='-NAME-', enable_events=True),
                 sg.Listbox(['Part', 'Template'], select_mode=True, enable_events=True, default_values=['Part'])],
         ],
-        [sg.B('Collect', disabled=True), sg.Button('Cancel')]
+        [sg.B('Collect', disabled=True, key='-COLLECT-'), sg.Button('Cancel')]
     ]
 
     def __init__(self):
@@ -32,13 +32,10 @@ class FindRecipesByPartView:
                 self.window.hide()
                 self.window_hidden = True
                 break
-            elif event[1] != '':
-                print(values['-NAME-'], self.layout)
-                for row in self.layout:
-                    for element in row:
-                        test = element
-                        #element.update(visible=False)
-                    # Show the new part of the layout
-                #window['-COL-'].update(visible=True)
+            elif event == '-NAME-':
+                if values['-NAME-']:
+                    self.window['-COLLECT-'].update(disabled=False)
+                else:
+                    self.window['-COLLECT-'].update(disabled=True)
+        print('You entered ', values[0], values['-NAME-'])
 
-            print('You entered ', values[0], values['-NAME-'])
