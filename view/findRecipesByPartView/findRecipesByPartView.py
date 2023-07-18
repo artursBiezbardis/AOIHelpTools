@@ -41,10 +41,10 @@ class FindRecipesByPartView:
                     self.window['-COLLECT-'].update(disabled=True)
             elif event == '-COLLECT-':
                 recipesResults = recipes.formatListForTable(values['-NAME-'], values['-SELECTION-'])
-                print('You entered ', values[0], values['-NAME-'])
+                #print('You entered ', values[0], values['-NAME-'])
                 #directories = (recipesList.RecipesListRepository()).folder_dict("C:\\Users\\arturs.biezbardis\\Desktop\\testFolder\\Recipes")
                 #for key, value in directories.items():
                     #print(f"Folder: {key}, Location: {value}")
 
-        print('You entered ', values[0], values['-NAME-'])
+        print('You entered ', values['-NAME-'])
 
