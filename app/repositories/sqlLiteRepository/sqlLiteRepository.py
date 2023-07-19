@@ -7,10 +7,10 @@ class SQLiteRepository:
 
         return (sql.connect(location))
 
-    def checkIfEnteryExist(self, selectedCol, entry, location):
+    def checkIfEnteryExist(self, table, selectedCol, entry, location):
         conn = self.connectToDB(location)
         c = conn.cursor()
-        query = "SELECT * FROM "+selectedCol+" WHERE id=?"
+        query = "SELECT * FROM "+table+" WHERE "+selectedCol+"=?"
         c.execute(query, (entry,))
         results = c.fetchall()
         if results:
