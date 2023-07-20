@@ -13,15 +13,15 @@ class MainView:
         self.view = ''
         self.window = createWindow.CreateWindow.create(self.title, self.layout)
         self.window_hidden = False
+
     def run_window(self):
 
         while True:
 
             if self.window_hidden:
-
                 self.window.un_hide()
             event, values = self.window.read()
-            if event == sg.WIN_CLOSED or event == 'Cancel':  # if user closes window or clicks cancel
+            if event == sg.WIN_CLOSED or event == 'Cancel':
                 self.view = ''
 
                 break
@@ -32,7 +32,7 @@ class MainView:
                 self.window.hide()
                 self.window_hidden = True
                 break
-                
+
             elif event == 'Find Recipes by Part':
 
                 self.view = event
@@ -42,7 +42,6 @@ class MainView:
 
             print('You entered ', values[0])
             self.window.close()
-
 
     def get_event(self):
         test = self.view

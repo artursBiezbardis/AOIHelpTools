@@ -17,8 +17,9 @@ class RecipesListService:
             entryType = 'PackageName'
         recipesRepository = sql.SQLiteRepository()
         for key, value in directories.items():
-            result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, value+self.dBSubLocation)
-            print(f"Folder: {key}, Location: {value}", result)
+            if entryType == 'TemplateId':
+                entry = entry.upper()
+                result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, value+self.dBSubLocation)
             if result:
                 entryRecipes += key+'\n'
 
