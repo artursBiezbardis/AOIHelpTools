@@ -1,9 +1,10 @@
 import view.mainView.mainView as MainView
 import view.mashCompareView.mashCompareView as MashCompare
-import PySimpleGUI as sg
+import view.findRecipesByPartView.findRecipesByPartView as FindRecipes
 
 mainView = MainView.MainView()
 mashCompareView = MashCompare.MashCompare()
+findRecipes = FindRecipes.FindRecipesByPartView()
 view = 'main view'
 
 while view:
@@ -13,4 +14,6 @@ while view:
     elif view == 'Compare Mash':
         mashCompareView.run_window()
         view = mashCompareView.view
-
+    elif view == 'Find Recipes by Part':
+        findRecipes.run_window()
+        view = mashCompareView.view
