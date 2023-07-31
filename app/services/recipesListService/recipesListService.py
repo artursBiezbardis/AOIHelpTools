@@ -20,6 +20,9 @@ class RecipesListService:
             if entryType == 'TemplateId':
                 entry = entry.upper()
                 result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, value+self.dBSubLocation)
+            else:
+                result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, value + self.dBSubLocation)
+
             if result:
                 entryRecipes += key+'\n'
 
