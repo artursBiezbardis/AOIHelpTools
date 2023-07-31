@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import createWindow as createWindow
-#import mashCompareResultsView as results
+
 
 class MashCompare:
     title = 'Select data and files to compare'
@@ -26,14 +26,14 @@ class MashCompare:
         self.view = ''
         self.window = createWindow.CreateWindow.create(self.title, self.layout)
         self.window_hidden = False
+
     def run_window(self):
         if self.window_hidden:
-
             self.window.un_hide()
 
         while True:
             event, values = self.window.read()
-            if event == sg.WIN_CLOSED:  # if user closes window or clicks cancel
+            if event == sg.WIN_CLOSED:
                 self.window.close()
                 break
             elif event == 'Cancel':
@@ -41,6 +41,3 @@ class MashCompare:
                 self.window.hide()
                 self.window_hidden = True
                 break
-           # elif event == "Compare Mash Files":
-
-            print('You entered ', values[0])
