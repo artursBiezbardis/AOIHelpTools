@@ -4,10 +4,23 @@ import createWindow as createWindow
 
 class MashCompare:
     title = 'Select data and files to compare'
+    mashCompareTable = []
+    mashCompareTableHeadings = [
+        'Name',
+        'Part Number',
+        'Description',
+        'X-coord',
+        'Y-coord',
+        'Rotation',
+        'Side',
+        'Mount',
+        'Type',
+        'Remarks']
+
     layout = [
         [sg.Text('Check data needed to compare with check Buttons and browse mash files to compare')],
         [
-            sg.CB('Name', default=True),
+            sg.CB('Name', default=True, disabled=True),
             sg.CB('Part Number', default=True),
             sg.CB('Description', default=True),
             sg.CB('X-cord', default=True),
@@ -19,7 +32,8 @@ class MashCompare:
             [sg.Input(key='-FILE1-'), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))],
             [sg.Input(key='-FILE2-'), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))]
         ],
-        [sg.B('Compare Mash Files', disabled=True), sg.Button('Cancel')]
+        [sg.B('Compare Mash Files', disabled=True), sg.Button('Cancel')],
+        [sg.Table(mashCompareTable, headings=mashCompareTableHeadings, visible=False)]
     ]
 
     def __init__(self):
