@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import createWindow as createWindow
-
+import app.services.mashFileServices.mashFileService as mashService
 
 class MashCompare:
     title = 'Select data and files to compare'
@@ -29,10 +29,10 @@ class MashCompare:
             sg.CB('Side', default=True)
         ],
         [
-            [sg.Input(key='-FILE1-'), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))],
-            [sg.Input(key='-FILE2-'), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))]
+            [sg.Input(key='-FILE1-', enable_events=True), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))],
+            [sg.Input(key='-FILE2-', enable_events=True), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))]
         ],
-        [sg.B('Compare Mash Files', disabled=True), sg.Button('Cancel')],
+        [sg.B('Compare Mash Files', key='-COMPARE-', disabled=True, enable_events=True), sg.Button('Cancel')],
         [sg.Table(mashCompareTable, headings=mashCompareTableHeadings, visible=False)]
     ]
 
@@ -44,9 +44,9 @@ class MashCompare:
     def run_window(self):
         if self.window_hidden:
             self.window.un_hide()
-
         while True:
             event, values = self.window.read()
+
             if event == sg.WIN_CLOSED:
                 self.window.close()
                 break
@@ -55,3 +55,10 @@ class MashCompare:
                 self.window.hide()
                 self.window_hidden = True
                 break
+            elif event == '-COMPARE-':
+                result = mashService.MashFileService()
+                result.compare_two_mashes(values['-FILE1-'], values['-FILE1-'])
+            elif values['-FILE1-'] and values['-FILE2-']:
+                self.window[ '-COMPARE-' ].update(disabled=False)
+
+
