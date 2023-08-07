@@ -33,7 +33,7 @@ class MashCompare:
             [sg.Input(key='-FILE2-', enable_events=True), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))]
         ],
         [sg.B('Compare Mash Files', key='-COMPARE-', disabled=True, enable_events=True), sg.Button('Cancel')],
-        [sg.Table(mashCompareTable, headings=mashCompareTableHeadings, visible=False)]
+        [sg.Table(mashCompareTable, key='-TABLE-', headings=mashCompareTableHeadings, visible=False)]
     ]
 
     def __init__(self):
@@ -56,9 +56,8 @@ class MashCompare:
                 self.window_hidden = True
                 break
             elif event == '-COMPARE-':
-                result = mashService.MashFileService()
-                result.compare_two_mashes(values['-FILE1-'], values['-FILE1-'])
+                #result = mashService.MashFileService()
+                table = (mashService.MashFileService().compare_two_mashes(values['-FILE1-'], values['-FILE2-']))[0]
+                self.window['-TABLE-'].update(values=table, visible=True)
             elif values['-FILE1-'] and values['-FILE2-']:
-                self.window[ '-COMPARE-' ].update(disabled=False)
-
-
+                self.window['-COMPARE-'].update(disabled=False)
