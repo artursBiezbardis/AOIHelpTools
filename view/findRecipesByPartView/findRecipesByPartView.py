@@ -5,6 +5,7 @@ import app.services.recipesListService.recipesListService as recipesList
 
 class FindRecipesByPartView:
     title = 'Collect all recipes by part name or template'
+    window_size = (400, 500)
     layout = [
         [
             [
@@ -18,7 +19,12 @@ class FindRecipesByPartView:
 
     def __init__(self):
         self.view = ''
-        self.window = createWindow.CreateWindow.create(self.title, self.layout)
+        self.window = createWindow.CreateWindow.create(
+            createWindow.CreateWindow(),
+            self.title,
+            self.layout,
+            self.window_size
+        )
         self.window_hidden = False
 
     def run_window(self):

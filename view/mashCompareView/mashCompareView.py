@@ -2,10 +2,13 @@ import PySimpleGUI as sg
 import createWindow as createWindow
 import app.services.mashFileServices.mashFileService as mashService
 
+
 class MashCompare:
     title = 'Select data and files to compare'
+    window_size = (1200, 500)
     mashCompareTable = []
     mashCompareTableHeadings = [
+        'Mash',
         'Name',
         'Part Number',
         'Description',
@@ -29,16 +32,43 @@ class MashCompare:
             sg.CB('Side', default=True)
         ],
         [
-            [sg.Input(key='-FILE1-', enable_events=True), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))],
-            [sg.Input(key='-FILE2-', enable_events=True), sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))]
+            [
+                sg.Input(key='-FILE1-', enable_events=True),
+                sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))
+            ],
+            [
+                sg.Input(key='-FILE2-', enable_events=True),
+                sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")))
+            ]
         ],
-        [sg.B('Compare Mash Files', key='-COMPARE-', disabled=True, enable_events=True), sg.Button('Cancel')],
-        [sg.Table(mashCompareTable, key='-TABLE-', headings=mashCompareTableHeadings, visible=False)]
+        [
+            sg.B('Compare Mash Files', key='-COMPARE-', disabled=True, enable_events=True),
+            sg.Button('Export to EXCEL', key='-EXCEL-', disabled=True, enable_events=True),
+            sg.Button('Cancel')
+
+        ],
+        [sg.Table(
+            mashCompareTable,
+            key='-TABLE-',
+            headings=mashCompareTableHeadings,
+            visible=False,
+            col_widths=[24, 5, 8, 30, 6, 6, 5, 10, 10, 15],
+            expand_x=True,
+            auto_size_columns=False,
+            justification='center',
+            vertical_scroll_only=False,
+        )],
+        []
+
     ]
 
     def __init__(self):
         self.view = ''
-        self.window = createWindow.CreateWindow.create(self.title, self.layout)
+        self.window = createWindow.CreateWindow.create(
+            createWindow.CreateWindow(),
+            self.title,
+            self.layout,
+            self.window_size)
         self.window_hidden = False
 
     def run_window(self):
@@ -56,8 +86,8 @@ class MashCompare:
                 self.window_hidden = True
                 break
             elif event == '-COMPARE-':
-                #result = mashService.MashFileService()
                 table = (mashService.MashFileService().compare_two_mashes(values['-FILE1-'], values['-FILE2-']))[0]
                 self.window['-TABLE-'].update(values=table, visible=True)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
+
