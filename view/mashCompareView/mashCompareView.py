@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 import createWindow as createWindow
 import app.services.mashFileServices.mashFileService as mashService
-
+import app.services.mashFileServices.exportMashToExcelService as exportExcel
 
 class MashCompare:
     title = 'Select data and files to compare'
@@ -85,9 +85,14 @@ class MashCompare:
                 self.window.hide()
                 self.window_hidden = True
                 break
+            elif event == '-EXCEL-':
+                exportExcel.ExportToExcelService().create_excel(table, self.mashCompareTableHeadings)
             elif event == '-COMPARE-':
                 table = (mashService.MashFileService().compare_two_mashes(values['-FILE1-'], values['-FILE2-']))[0]
                 self.window['-TABLE-'].update(values=table, visible=True)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
+                self.window['-EXCEL-'].update(disabled=False)
+            elif event == '-EXCEL-':
+                exportExcel.ExportToExcelService().create_excel(table, self.mashCompareTableHeadings)
 
