@@ -18,7 +18,7 @@ class MashFileService:
             if self.is_valid_component_name(item[0]):
                 item = np.array(item)
                 item = item.tolist()
-                #item.insert(0, file_name)
+                item = self.format_data_content(item)
                 mash_data[item[0]] = item
                 component_names.append(item[0])
         results = [file_name, component_names, mash_data]
@@ -91,3 +91,18 @@ class MashFileService:
             diff2[0] = row +1
 
             return [diff1, diff2]
+
+    def format_data_content(self, item):
+
+        for key, value in enumerate(item):
+            if not isinstance(value, (int, float, complex)):
+
+                item[key] = value.replace(",", ".")
+
+                if not help.Helpers().is_number(item[key]):
+                    item[key] = value.upper()
+                if help.Helpers().is_number(item[key]):
+                    item[key] = float(item[key])
+                if not help.Helpers().is_number(item[key]):
+                    item[key] = help.Helpers().replace_special_letters(item[key])
+        return item

@@ -90,9 +90,9 @@ class MashCompare:
             elif event == '-COMPARE-':
                 table = (mashService.MashFileService().compare_two_mashes(values['-FILE1-'], values['-FILE2-']))[0]
                 self.window['-TABLE-'].update(values=table, visible=True)
+                self.window['-EXCEL-'].update(disabled=False)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
-                self.window['-EXCEL-'].update(disabled=False)
             elif event == '-EXCEL-':
                 exportExcel.ExportToExcelService().create_excel(table, self.mashCompareTableHeadings)
 
