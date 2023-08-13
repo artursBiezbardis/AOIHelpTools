@@ -17,3 +17,6 @@ while view:
     elif view == 'Find Recipes by Part':
         findRecipes.run_window()
         view = mashCompareView.view
+    elif view == 'Settings':
+        findRecipes.run_window()
+        view = mashCompareView.view

@@ -7,11 +7,23 @@ class MainView:
     button1Title: str = 'Compare Mash'
     buttonCancelTitle: str = 'Cancel'
     button2Title: str = 'Find Recipes by Part'
-    layout: [[sg.Button]] = [[sg.Button(button1Title), sg.Button(button2Title), sg.Button(buttonCancelTitle)]]
+    buttonSettings :str = 'Settings'
+    window_size = (500, 50)
+    layout: [[sg.Button]] = [[
+        sg.Button(button1Title),
+        sg.Button(button2Title),
+        sg.Button(buttonSettings, disabled=True),
+        sg.Button(buttonCancelTitle)
+    ]]
 
     def __init__(self):
         self.view = ''
-        self.window = createWindow.CreateWindow.create(self.title, self.layout)
+        self.window = createWindow.CreateWindow.create(
+            createWindow.CreateWindow(),
+            self.title,
+            self.layout,
+            self.window_size
+        )
         self.window_hidden = False
 
     def run_window(self):
@@ -40,7 +52,13 @@ class MainView:
                 self.window_hidden = True
                 break
 
-            print('You entered ', values[0])
+            elif event == 'Settings':
+
+                self.view = event
+                self.window.hide()
+                self.window_hidden = True
+                break
+
             self.window.close()
 
     def get_event(self):
