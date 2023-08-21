@@ -5,16 +5,26 @@ import app.services.recipesListService.recipesListService as recipesList
 
 class FindRecipesByPartView:
     title = 'Collect all recipes by part name or template'
-    window_size = (400, 500)
+    window_size = (400, 200)
     layout = [
         [
             [
-                sg.Input(key='-NAME-', enable_events=True),
-                sg.Listbox(['Component', 'Package'], key='-SELECTION-', select_mode=True, enable_events=True,
-                           default_values=['Component'])],
+                sg.Input(key='-NAME-', enable_events=True, size=(10, 1)),
+                sg.Listbox(['Component', 'Package'],
+                           key='-SELECTION-',
+                           select_mode=True,
+                           enable_events=True,
+                           default_values=['Component'],
+                           size=(10, 2),
+                           )
+            ],
         ],
-        [sg.B('Collect', disabled=True, key='-COLLECT-'), sg.Button('Cancel')],
-        [sg.Multiline('', key='-RECIPES-', size=(35, 5))]
+        [
+            sg.B('Collect', disabled=True, key='-COLLECT-'),
+            sg.Button('Cancel')
+         ],
+        [sg.Multiline('', key='-RECIPES-', size=(35, 5))],
+        [sg.B('Update part in all recipes', disabled=True, key='-UPDATE_RECIPES-')]
     ]
 
     def __init__(self):
@@ -48,5 +58,5 @@ class FindRecipesByPartView:
                 else:
                     self.window['-COLLECT-'].update(disabled=True)
             elif event == '-COLLECT-':
-                recipesResults = recipes.formatListForTable(values['-NAME-'], values['-SELECTION-'][0])
-                self.window['-RECIPES-'].update(recipesResults)
+                recipes_results = recipes.formatListForTable(values['-NAME-'], values['-SELECTION-'][0])
+                self.window['-RECIPES-'].update(recipes_results)
