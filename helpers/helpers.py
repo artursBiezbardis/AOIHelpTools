@@ -44,3 +44,8 @@ class Helpers:
             return True
         except ValueError:
             return False
+
+    def add_to_env(self, key, value, env_file_path=".env"):
+        """Add a key-value pair to a .env file."""
+        with open(env_file_path, 'a') as file:
+            file.write(f"\n{key}={value}")

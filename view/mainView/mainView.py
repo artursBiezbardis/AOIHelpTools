@@ -1,4 +1,4 @@
-import createWindow as createWindow
+from view import createWindow as createWindow
 import PySimpleGUI as sg
 
 
@@ -12,7 +12,7 @@ class MainView:
     layout: [[sg.Button]] = [[
         sg.Button(button1Title),
         sg.Button(button2Title),
-        sg.Button(buttonSettings, disabled=True),
+        sg.Button(buttonSettings),
         sg.Button(buttonCancelTitle)
     ]]
 

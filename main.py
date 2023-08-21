@@ -1,22 +1,8 @@
-import view.mainView.mainView as MainView
-import view.mashCompareView.mashCompareView as MashCompare
-import view.findRecipesByPartView.findRecipesByPartView as FindRecipes
+import view.view as initView
+import os
+import helpers.helpers as hellp
+from dotenv import load_dotenv
 
-mainView = MainView.MainView()
-mashCompareView = MashCompare.MashCompare()
-findRecipes = FindRecipes.FindRecipesByPartView()
-view = 'main view'
+hellp.Helpers().add_to_env('root', os.path.dirname(os.path.abspath(__file__)), '.env')
 
-while view:
-    if view == 'main view':
-        mainView.run_window()
-        view = mainView.view
-    elif view == 'Compare Mash':
-        mashCompareView.run_window()
-        view = mashCompareView.view
-    elif view == 'Find Recipes by Part':
-        findRecipes.run_window()
-        view = mashCompareView.view
-    elif view == 'Settings':
-        findRecipes.run_window()
-        view = mashCompareView.view
+initView.View().view()

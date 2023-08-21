@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-import createWindow as createWindow
+from view import createWindow as createWindow
 import app.services.recipesListService.recipesListService as recipesList
 
 
