@@ -25,7 +25,7 @@ class MashFileService:
 
         return results
 
-    def compare_two_mashes(self, location1, location2):
+    def compare_two_mashes(self, location1, location2, setEmptyCellsToMashFiles ):
 
         empty_row = ['', '', '', '', '', '', '', '', '', '']
         compare_table = []
@@ -40,12 +40,17 @@ class MashFileService:
         comp_list = self.get_list_of_components_from_mashes(comp_name_list1, comp_name_list2)
         row_count = 0
         cells_with_differences = []
+        listMashColumnsNotToCompare = self.convert_to_list_mash_columns_not_to_compare(setEmptyCellsToMashFiles)
+
         for component in comp_list:
             no_data = ['no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data']
             if component not in mash_data1:
                 mash_data1[component] = no_data
             if component not in mash_data2:
                 mash_data2[component] = no_data
+
+            mash_data1[component] = self.removeDataFromSelectedMashCell(mash_data1[component], listMashColumnsNotToCompare)
+            mash_data2[component] = self.removeDataFromSelectedMashCell(mash_data2[component], listMashColumnsNotToCompare)
             if json.dumps(mash_data1[component]) != json.dumps(mash_data2[component]):
                 row_count += 1
                 data_row1 = mash_data1[component]
@@ -106,3 +111,27 @@ class MashFileService:
                 if not help.Helpers().is_number(item[key]):
                     item[key] = help.Helpers().replace_special_letters(item[key])
         return item
+
+    def convert_to_list_mash_columns_not_to_compare(self, setEmptyCellsToMashFiles ):
+        list_value = {
+                '-PART_NUMBER-': 1,
+                '-DESCRIPTION-': 2,
+                '-X_CORD-': 3,
+                '-Y_CORD-': 4,
+                '-ROTATION-': 5,
+                '-SIDE-': 6
+            }
+        list = []
+
+        for key, value in setEmptyCellsToMashFiles.items():
+           if not value:
+             list.append(list_value[key])
+
+        return list
+
+    def removeDataFromSelectedMashCell(self,mash_data, listMashColumnsNotToCompare):
+        formatedMashRow = mash_data
+        for value in listMashColumnsNotToCompare:
+           formatedMashRow[value] = 'no data'
+
+        return formatedMashRow
