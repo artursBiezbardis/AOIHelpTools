@@ -27,7 +27,6 @@ class MashFileService:
 
     def compare_two_mashes(self, location1, location2):
 
-        no_data = ['no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data']
         empty_row = ['', '', '', '', '', '', '', '', '', '']
         compare_table = []
         mash1 = self.extract_mash_data(location1)
@@ -42,6 +41,7 @@ class MashFileService:
         row_count = 0
         cells_with_differences = []
         for component in comp_list:
+            no_data = ['no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data']
             if component not in mash_data1:
                 mash_data1[component] = no_data
             if component not in mash_data2:
