@@ -1,10 +1,12 @@
 import view.mainView.mainView as MainView
 import view.mashCompareView.mashCompareView as MashCompare
 import view.findRecipesByPartView.findRecipesByPartView as FindRecipes
+import view.settingsView.settingsView as settingsView
 
 mainView = MainView.MainView()
 mashCompareView = MashCompare.MashCompare()
 findRecipes = FindRecipes.FindRecipesByPartView()
+settings = settingsView.Settings()
 view = 'main view'
 
 while view:
@@ -16,7 +18,7 @@ while view:
         view = mashCompareView.view
     elif view == 'Find Recipes by Part':
         findRecipes.run_window()
-        view = mashCompareView.view
+        view = findRecipes.view
     elif view == 'Settings':
-        findRecipes.run_window()
-        view = mashCompareView.view
+        settings.run_window()
+        view = settings.view
