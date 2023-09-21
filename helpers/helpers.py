@@ -44,3 +44,7 @@ class Helpers:
             return True
         except ValueError:
             return False
+
+    def correct_path_string(self, path: str) -> str:
+        return path.replace("\\", "\\\\")
+    

@@ -78,7 +78,7 @@ class MashFileService:
 
     def is_valid_component_name(self, name):
         try:
-            return re.fullmatch(r'[a-zA-Z]+\d{1,4}', name) is not None
+            return re.fullmatch(r'[a-zA-Z]+\d{1,7}', name) is not None
         except TypeError:
             return False
 
