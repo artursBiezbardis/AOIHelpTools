@@ -19,8 +19,8 @@ class SQLiteRepository:
         else:
             return False
 
-    def read_value_by_name(self, table, name, location):
-        conn = self.connectToDB(location)
+    def read_value_by_name(self, table, name, data_base):
+        conn = self.connectToDB(data_base)
         c = conn.cursor()
         query = "SELECT * FROM " + table + " WHERE Name =?"
         c.execute(query, (name,))
@@ -28,9 +28,18 @@ class SQLiteRepository:
         conn.close()
         return value[1]
 
-    def set_value_by_name(self, table, name, location, value):
-        conn = self.connectToDB(location)
+    def set_value_by_name(self, table, name, data_base, value):
+        conn = self.connectToDB(data_base)
         c = conn.cursor()
         c.execute("UPDATE "+table+" SET Value = ? WHERE Name = ?", (value, name))
-        test = self.read_value_by_name(table, name, location)
         conn.commit()
+        conn.close()
+
+    def get_all_settings(self, table, data_base):
+        conn = self.connectToDB(data_base)
+        c = conn.cursor()
+        query = "SELECT * FROM " + table + ""
+        c.execute(query)
+        settings_list = c.fetchall()
+        conn.close()
+        return settings_list

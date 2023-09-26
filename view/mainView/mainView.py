@@ -7,7 +7,7 @@ class MainView:
     button1Title: str = 'Compare Mash'
     buttonCancelTitle: str = 'Cancel'
     button2Title: str = 'Find Recipes by Part'
-    buttonSettings :str = 'Settings'
+    buttonSettings:str = 'Settings'
     window_size = (500, 50)
     layout: [[sg.Button]] = [[
         sg.Button(button1Title),
