@@ -1,7 +1,7 @@
 import app.repositories.sqlLiteRepository.sqlLiteRepository as sqlLite
 
 
-class Settings:
+class SettingsService:
     def read_settings_values(self, settings):
         return
 
@@ -19,5 +19,9 @@ class Settings:
         )
         return input_value
 
-    def settings_collection(self, settings_view_values):
-        return
+    def settings_list_to_object(self, all_settings):
+        all_settings_obj = {}
+        for name, val in all_settings:
+            all_settings_obj[name] = val
+
+        return all_settings_obj

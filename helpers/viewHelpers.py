@@ -6,7 +6,7 @@ class ViewHelper:
             self,
             input_layouts=[],
             text_background_color=None,
-            input_default_value='',
+            settings={},
             folder_browser=True
     ):
         layouts = []
@@ -14,11 +14,11 @@ class ViewHelper:
         for val in input_layouts:
             val_to_upper_case = val.upper().replace(' ', '_')
             val_first_upper_case = val.capitalize()
-
+            settings_name = '-' + val_to_upper_case + '_PATH-'
 
             layouts.append(
                 [sg.Text(self.string_length_adjustment_with_white_space(val_first_upper_case, 50, ' path'), background_color=text_background_color),
-                 sg.Input(input_default_value, key='-' + val_to_upper_case + '_PATH-', enable_events=True),
+                 sg.Input(settings[settings_name], key=settings_name, enable_events=True),
                  sg.FolderBrowse() if folder_browser else sg.FileBrowse()
                  ]
             )
