@@ -46,5 +46,5 @@ class Helpers:
             return False
 
     def correct_path_string(self, path: str) -> str:
-        return path.replace("\\", "\\\\")
+        return path.replace("/", "\\")
     

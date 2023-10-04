@@ -1,4 +1,5 @@
 import sqlite3 as sql
+import root
 
 
 class SQLiteRepository:
@@ -7,10 +8,11 @@ class SQLiteRepository:
 
         return (sql.connect(location))
 
-    def checkIfEnteryExist(self, table, selectedCol, entry, location):
+    def checkIfEnteryExist(self, table, selectedCol, entry,
+                           location):
         conn = self.connectToDB(location)
         c = conn.cursor()
-        query = "SELECT * FROM "+table+" WHERE "+selectedCol+"=?"
+        query = "SELECT * FROM " + table + " WHERE " + selectedCol + "=?"
         c.execute(query, (entry,))
         results = c.fetchall()
         conn.close()
@@ -19,7 +21,8 @@ class SQLiteRepository:
         else:
             return False
 
-    def read_value_by_name(self, table, name, data_base):
+    def read_value_by_name(self, table, name,
+                           data_base):
         conn = self.connectToDB(data_base)
         c = conn.cursor()
         query = "SELECT * FROM " + table + " WHERE Name =?"
@@ -28,14 +31,15 @@ class SQLiteRepository:
         conn.close()
         return value[1]
 
-    def set_value_by_name(self, table, name, data_base, value):
+    def set_value_by_name(self, table, name, value,
+                          data_base):
         conn = self.connectToDB(data_base)
         c = conn.cursor()
-        c.execute("UPDATE "+table+" SET Value = ? WHERE Name = ?", (value, name))
+        c.execute("UPDATE " + table + " SET Value = ? WHERE Name = ?", (value, name))
         conn.commit()
         conn.close()
 
-    def get_all_settings(self, table, data_base):
+    def get_all(self, table, data_base):
         conn = self.connectToDB(data_base)
         c = conn.cursor()
         query = "SELECT * FROM " + table + ""

@@ -1,6 +1,5 @@
 import PySimpleGUI as sg
 import createWindow as createWindow
-import app.repositories.sqlLiteRepository.sqlLiteRepository as sqlLite
 import helpers.viewHelpers as view_helper
 import app.services.settingsService.settingsService as service
 
@@ -10,18 +9,21 @@ class Settings:
     window_size = (1200, 500)
     t_b_color = '#2B2B28'
 
-    data_base = 'C:\\Users\\arturs.biezbardis\\PycharmProjects\\AOIHelpTools\\settings.db'
-    settings_table = 'setup'
-    all_settings = service.SettingsService().settings_list_to_object(
-        sqlLite.SQLiteRepository().get_all_settings(settings_table, data_base))
-    recipes_folder = sqlLite.SQLiteRepository().read_value_by_name(settings_table, '-RECIPES_PATH-', data_base)
-    file_location_layouts_define = ['database']
+    file_location_layouts_define = []
     folder_location_layouts_define = ['recipes', 'library', 'mash compare export']
     view_layouts = view_helper.ViewHelper()
+    browser_input_val = service.SettingsService().settings_list_to_object(service.SettingsService().get_settings())
 
     layout = [[
-        view_layouts.generate_layout_for_path_browsers(folder_location_layouts_define, t_b_color, all_settings),
-        view_layouts.generate_layout_for_path_browsers(file_location_layouts_define, t_b_color, all_settings, False)
+        view_layouts.generate_layout_for_path_browsers(
+            folder_location_layouts_define,
+            t_b_color,
+            stored_input=browser_input_val),
+
+        view_layouts.generate_layout_for_path_browsers(
+            file_location_layouts_define, t_b_color,
+            False,
+            browser_input_val)
     ],
         [
             sg.B('Update settings', key='-Update-', disabled=True, enable_events=True),
@@ -46,7 +48,6 @@ class Settings:
             self.window.un_hide()
         while True:
             event, values = self.window.read()
-            settings_list = sqlLite.SQLiteRepository().get_all_settings(self.settings_table, self.data_base)
 
             if event == sg.WIN_CLOSED:
                 self.window.close()
@@ -57,26 +58,7 @@ class Settings:
                 self.window_hidden = True
                 break
             elif event == '-Update-':
-                for name, val in settings_list:
-                    if val is not values[name]:
-                        sqlLite.SQLiteRepository().set_value_by_name(
-                            self.settings_table,
-                            name,
-                            self.data_base,
-                            values[name]
-                        )
-                        input_value = sqlLite.SQLiteRepository().read_value_by_name(
-                            self.settings_table,
-                            name,
-                            self.data_base
-                        )
-                        self.window[name].update(input_value)
-            elif values['-RECIPES_PATH-'] is not self.recipes_folder:
+                service.SettingsService().update_settings_values(values)
+                self.window['-Update-'].update(disabled=True)
+            elif '_PATH-' in event:
                 self.window['-Update-'].update(disabled=False)
-
-    def settings_list_to_object(self, all_settings):
-        all_settings_obj = {}
-        for name, val in all_settings:
-            all_settings_obj[name] = val
-
-        return all_settings_obj

@@ -1,12 +1,15 @@
 import app.repositories.recipesListRepository.recipesListRepository as recipesList
 import app.repositories.sqlLiteRepository.sqlLiteRepository as sql
+import app.services.settingsService.settingsService as settings
+
 
 
 class RecipesListService:
 
     dBSubLocation = '\\TemplateLibrary\\Templates.db'
     table = 'Component'
-    recipesFolder = "Z:\\Recipe"
+    setting_name = '-RECIPES_PATH-'
+    recipesFolder = settings.SettingsService().get_setting(setting_name)
 
     def formatListForTable(self, entry: str, entryType: str):
         directories = (recipesList.RecipesListRepository()).folder_dict(self.recipesFolder)

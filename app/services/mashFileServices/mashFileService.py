@@ -4,9 +4,10 @@ import helpers.helpers as help
 import numpy as np
 import json
 
-class MashFileService:
-    testLocation = 'Z:\cad\I0MTPI43_R02\I0MTPI43_R02_mash_01.xls'
 
+class MashFileService:
+    no_data = ['no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data',
+               'no data']
     def extract_mash_data(self, location):
 
         mash_table = mashFileRepo.MashFileRepository().get_mash_table(location)
@@ -43,11 +44,11 @@ class MashFileService:
         listMashColumnsNotToCompare = self.convert_to_list_mash_columns_not_to_compare(setEmptyCellsToMashFiles)
 
         for component in comp_list:
-            no_data = ['no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data']
+
             if component not in mash_data1:
-                mash_data1[component] = no_data
+                mash_data1[component] = self.no_data
             if component not in mash_data2:
-                mash_data2[component] = no_data
+                mash_data2[component] = self.no_data
 
             mash_data1[component] = self.removeDataFromSelectedMashCell(mash_data1[component], listMashColumnsNotToCompare)
             mash_data2[component] = self.removeDataFromSelectedMashCell(mash_data2[component], listMashColumnsNotToCompare)
@@ -56,7 +57,7 @@ class MashFileService:
                 data_row1 = mash_data1[component]
                 data_row2 = mash_data2[component]
 
-                #adds differences location in 3D array first value in 2D array is row number
+                #adds differences location in 3D array first value in 2D array is row number for adding colors to excel export
                 data_row_diff_location = self.locate_diff_in_row(row_count, data_row1, data_row2)
                 cells_with_differences.append(data_row_diff_location[0])
                 cells_with_differences.append(data_row_diff_location[1])
