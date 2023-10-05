@@ -6,8 +6,7 @@ import json
 
 
 class MashFileService:
-    no_data = ['no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data',
-               'no data']
+
     def extract_mash_data(self, location):
 
         mash_table = mashFileRepo.MashFileRepository().get_mash_table(location)
@@ -45,10 +44,13 @@ class MashFileService:
 
         for component in comp_list:
 
+            no_data = ['no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data',
+                       'no data',
+                       'no data']
             if component not in mash_data1:
-                mash_data1[component] = self.no_data
+                mash_data1[component] = no_data
             if component not in mash_data2:
-                mash_data2[component] = self.no_data
+                mash_data2[component] = no_data
 
             mash_data1[component] = self.removeDataFromSelectedMashCell(mash_data1[component], listMashColumnsNotToCompare)
             mash_data2[component] = self.removeDataFromSelectedMashCell(mash_data2[component], listMashColumnsNotToCompare)

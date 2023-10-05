@@ -7,11 +7,14 @@ class MainView:
     button1Title: str = 'Compare Mash'
     buttonCancelTitle: str = 'Cancel'
     button2Title: str = 'Find Recipes by Part'
-    buttonSettings:str = 'Settings'
-    window_size = (500, 50)
+    buttonSettings: str = 'Settings'
+    buttonGroupComponents: str = 'Group Components'
+    window_size = (600, 80)
     layout: [[sg.Button]] = [[
         sg.Button(button1Title),
         sg.Button(button2Title),
+        sg.Button(buttonGroupComponents),
+    ], [
         sg.Button(buttonSettings),
         sg.Button(buttonCancelTitle)
     ]]
@@ -52,13 +55,19 @@ class MainView:
                 self.window_hidden = True
                 break
 
+
             elif event == 'Settings':
 
                 self.view = event
                 self.window.hide()
                 self.window_hidden = True
                 break
+            elif event == 'Group Components':
 
+                self.view = event
+                self.window.hide()
+                self.window_hidden = True
+                break
             self.window.close()
 
     def get_event(self):
