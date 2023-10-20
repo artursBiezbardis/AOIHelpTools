@@ -3,7 +3,7 @@ import os
 
 class Helpers:
 
-    def get_filename_from_path(self,location):
+    def get_filename_from_path(self, location):
         return os.path.basename(location)
 
     def replace_special_letters(self, input_string: str):
@@ -47,4 +47,13 @@ class Helpers:
 
     def correct_path_string(self, path: str) -> str:
         return path.replace("/", "\\")
+
+    @staticmethod
+    def get_files_in_folder(folder_path: str) -> list:
+        return os.listdir(folder_path)
+
+    @staticmethod
+    def has_extension(file_path, extension):
+        _, file_extension = os.path.splitext(file_path)
+        return file_extension == extension
     

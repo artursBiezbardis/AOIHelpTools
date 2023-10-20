@@ -3,7 +3,6 @@ import app.repositories.sqlLiteRepository.sqlLiteRepository as sql
 import app.services.settingsService.settingsService as settings
 
 
-
 class RecipesListService:
 
     dBSubLocation = '\\TemplateLibrary\\Templates.db'

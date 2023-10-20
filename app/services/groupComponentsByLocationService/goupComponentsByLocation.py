@@ -1,56 +1,70 @@
 import app.models.LocationsCollection as areaLocationCollection
-import app.models.areaLocationModel as locationModel
+import helpers.compressAndExtractRecipesHelper as compressAndExtractRecipes
+import helpers.helpers as help
+import os
+import app.repositories.groupComponentsByLocationRepository.areaLocationRepository as areaLocation
 
 
 class GroupComponentsByLocation:
-    area_location_collection = areaLocationCollection.LocationsData([])
 
-    def update_component_in_recipe(self):
+    def main(self, view_input):
+
+        area_location_collection = self.read_area_location_data(view_input)
+        self.update_component_in_recipe(area_location_collection, view_input)
+
+    def read_area_location_data(self, view_input) -> areaLocationCollection.LocationsData([]):
+        helpers = help.Helpers()
+        extract_recipe = compressAndExtractRecipes.CompressAndExtractRecipesHelper()
+
+        recipe_path = view_input['-RECIPE_FOLDER_FOR_LOCATIONS_PATH-']
+        list_of_gzip_files = self.prepare_recipe_data(recipe_path)
+
+        # list of recipe files extracted from recipe file
+
+        for file in list_of_gzip_files:
+            if helpers.has_extension(file, '.board'):
+                gzip_out_name = os.path.splitext(file)[0]
+                extract_recipe.extract_compress_gzip(helpers.correct_path_string(recipe_path), file,
+                                                     '\\tmp\\boardsXML\\' + gzip_out_name)
+
+                xml_file = recipe_path + '\\tmp\\boardsXML\\' + gzip_out_name
+
+                data_for_area_locations = areaLocation.AreaLocationRepository(). \
+                    get_area_location_data(xml_file, view_input).areaLocationCollection
+
+                for item in data_for_area_locations:
+                    val = item.check_contains_component(72.0996208190918, 80.30043029785156)
+                    print(val)
+                return data_for_area_locations
+
+    def update_component_in_recipe(self, area_locations_collection, view_input):
+        helpers = help.Helpers()
+        extract_recipe = compressAndExtractRecipes.CompressAndExtractRecipesHelper()
+        recipe_path = view_input['-RECIPE_FOLDER_TO_UPDATE_PATH-']
+        list_of_gzip_files = self.prepare_recipe_data(recipe_path)
+
+        for file in list_of_gzip_files:
+            if helpers.has_extension(file, '.board'):
+                gzip_out_name = os.path.splitext(file)[0]
+                extract_recipe.extract_compress_gzip(helpers.correct_path_string(recipe_path), file,
+                                                     '\\tmp\\boardsXML\\' + gzip_out_name)
+
+                xml_file = recipe_path + '\\tmp\\boardsXML\\' + gzip_out_name
+
         return
 
-    def update_location_collection(self, location_data: locationModel.AreaLocation):
-        self.area_location_collection.add_location_to_collection(location_data)
+    @staticmethod
+    def prepare_recipe_data(path_to_recipe):
 
-    def test(self):
-        model1 = {
-            'location_name': 'model1',
-            'x': 100.1,
-            'y': 100.00,
-            'width': 300.1,
-            'height': 300.01,
-            'offset_x': 5,
-            'offset_y': 6,
-            'left_line_offset': 7,
-            'right_line_offset': 8,
-            'up_line_offset': 9,
-            'down_line_offset': 10,
-        }
-        model2 = {
-            'location_name': 'model2',
-            'x': 100.2,
-            'y': 100.02,
-            'width': 300.2,
-            'height': 300.02,
-            'offset_x': 5.2,
-            'offset_y': 6.6,
-            'left_line_offset': 7.7,
-            'right_line_offset': 8.9,
-            'up_line_offset': 9.11,
-            'down_line_offset': 10,
-        }
+        helpers = help.Helpers()
+        extract_recipe = compressAndExtractRecipes.CompressAndExtractRecipesHelper()
 
-        area1 = locationModel.AreaLocation(model1['location_name'], model1['x'], model1['y'], model1['width'],
-                                           model1['height'],
-                                           model1['offset_x'], model1['offset_y'], model1['left_line_offset'],
-                                           model1['right_line_offset'],
-                                           model1['up_line_offset'], model1['down_line_offset'])
-        area2 = locationModel.AreaLocation(model1['location_name'], model1['x'], model1['y'], model1['width'],
-                                           model1['height'],
-                                           model1['offset_x'], model1['offset_y'], model1['left_line_offset'],
-                                           model1['right_line_offset'],
-                                           model1['up_line_offset'], model1['down_line_offset'])
+        file_name = helpers.get_filename_from_path(path_to_recipe) + '.recipe'
+        extract_recipe.extract_zip(path_to_recipe, file_name)
+        list_of_gzip_files = helpers.get_files_in_folder(path_to_recipe + '\\tmp')
+        os.mkdir(path_to_recipe + '\\tmp\\boardsXML')
 
-        self.update_location_collection(area1)
-        self.update_location_collection(area2)
-        collection = self.area_location_collection
-        test1 = '1234'
+        return list_of_gzip_files
+
+    # def update_location_collection(self, location_data: locationModel.AreaLocation):
+    #     self.area_location_collection.add_location_to_collection(location_data)

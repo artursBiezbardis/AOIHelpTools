@@ -72,6 +72,11 @@ class GroupComponents:
             elif event == '-Modify-':
 
                 self.window['-Modify-'].update(disabled=True)
-                group.GroupComponentsByLocation().test()
+                input_data = values
+                group.GroupComponentsByLocation().main(input_data)
+
             elif '_PATH-' in event:
                 self.window['-Modify-'].update(disabled=False)
+
+
+#'recipe folder to update', 'recipe folder for locations'

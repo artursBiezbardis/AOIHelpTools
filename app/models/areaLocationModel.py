@@ -15,7 +15,7 @@ class AreaLocation:
     up_line_offset: float
     down_line_offset: float
 
-    def contains_point(self, component_x: float, component_y: float) -> bool:
+    def check_contains_component(self, component_x: float, component_y: float) -> bool:
         return \
             (self.x - self.width/2) + self.left_line_offset <= component_x <=\
             (self.x + self.width/2) + self.right_line_offset and \
