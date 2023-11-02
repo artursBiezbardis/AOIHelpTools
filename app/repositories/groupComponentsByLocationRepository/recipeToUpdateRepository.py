@@ -1,35 +1,38 @@
-from lxml import etree
 import xmltodict
-
+from collections.abc import Sequence, Mapping
 
 class RecipeToUpdateRepository:
 
-    def get_area_location_data(self, xml_file: str,):
-        tree = etree.parse(xml_file)
-        root = tree.getroot()
-        # Define the namespace
-        ns = {'ns': 'http://schemas.datacontract.org/2004/07/CO.Phoenix.CyberDataModel.RecipeData'}
+    def update_board_components_in_selected_areas(self, xml_file: str, location_collection: list, suffix_for_update):
 
-        # Find all elements with the namespace
-        elements = root.xpath('//Element')
+        with open(xml_file, 'rb') as file:
+            data = xmltodict.parse(file)
+            elements = data['Board']['Children']['a:Element']
+            count = 1
+            for element in elements:
+                try:
+                    if element['a:Name'][0] != 'T':
+                        component_in_location = False
+                        if isinstance(element['Bodies']['a:Body'], object):
+                            x = float(element['Bodies']['a:Body']['a:Position']['a:X'])
+                            y = float(element['Bodies']['a:Body']['a:Position']['a:Y'])
+                            for location in location_collection:
 
-        for element in elements:
-            ns = {'ns': 'http://schemas.datacontract.org/2004/07/CO.Phoenix.CyberDataModel.RecipeData'}
-            print(ns)
-            name = element.find('.//Name').text
-            relative_position_x = float(element.find('.//X').text)
-            relative_position_y = float(element.find('.//Y').text)
-            ns = {'a': 'http://schemas.datacontract.org/2004/07/CO.Phoenix.CyberDataModel.RecipeData'}
-            print(ns)
-            shape_base = root.find('.//Body/Shape/*[1]')
+                                if isinstance(x, float) and isinstance(y, float):
+                                    if location.check_contains_component(x, y):
 
-            shape_height = element.find('.//Height').text
+                                        component_in_location = str(element['a:Name'])
+                                        print(component_in_location)
+                                        element['a:TemplateName'] = element['a:TemplateName'] + suffix_for_update
+                                        element['PackageName'] = element['PackageName'] + suffix_for_update
+                                        element['PartNumber'] = element['PartNumber'] + suffix_for_update
 
-            print(f"Name: {name}")
-            print(f"Relative Position: ({relative_position_x}, {relative_position_y})")
-            print(f"Shape Base: {shape_base}")
-            print(f"Shape Height: {shape_height}\n")
+                                        count+=1
+                                        break
 
+                except TypeError as e:
+                    print(e)
 
-
-
+        updated_xml = xmltodict.unparse(data, pretty=True)
+        with open(xml_file, 'w') as file:
+            file.write(updated_xml)

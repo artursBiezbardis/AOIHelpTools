@@ -3,6 +3,7 @@ import helpers.compressAndExtractRecipesHelper as compressAndExtractRecipes
 import helpers.helpers as help
 import os
 import app.repositories.groupComponentsByLocationRepository.areaLocationRepository as areaLocation
+import app.repositories.groupComponentsByLocationRepository.recipeToUpdateRepository as updateRecipe
 
 
 class GroupComponentsByLocation:
@@ -51,7 +52,9 @@ class GroupComponentsByLocation:
 
                 xml_file = recipe_path + '\\tmp\\boardsXML\\' + gzip_out_name
 
-        return
+                updateRecipe.RecipeToUpdateRepository().update_board_components_in_selected_areas(xml_file, area_locations_collection, view_input['-SUFFIX-'])
+
+
 
     @staticmethod
     def prepare_recipe_data(path_to_recipe):
@@ -66,5 +69,3 @@ class GroupComponentsByLocation:
 
         return list_of_gzip_files
 
-    # def update_location_collection(self, location_data: locationModel.AreaLocation):
-    #     self.area_location_collection.add_location_to_collection(location_data)

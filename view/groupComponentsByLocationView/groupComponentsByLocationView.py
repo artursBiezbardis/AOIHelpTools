@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 import createWindow as createWindow
 import helpers.viewHelpers as view_helper
-import app.services.groupComponentsByLocationService.goupComponentsByLocation as group
+import app.services.groupComponentsByLocationService.goupComponentsByLocationService as group
 
 
 class GroupComponents:
