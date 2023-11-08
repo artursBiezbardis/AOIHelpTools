@@ -34,3 +34,9 @@ class CompressAndExtractRecipesHelper:
         file_path = path + '\\' + file_name
         shutil.make_archive(file_path.replace('.recipe', ''), 'zip', path)
 
+    @staticmethod
+    def compress_files_zip(resulting_file_path: str, list_of_file_names: list, file_path: str):
+        with zipfile.ZipFile(resulting_file_path, 'w') as zipf:
+            for gzip_file in list_of_file_names:
+                zipf.write(file_path + gzip_file, gzip_file)
+
