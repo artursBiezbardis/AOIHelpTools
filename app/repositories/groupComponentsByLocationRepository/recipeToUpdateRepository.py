@@ -1,5 +1,8 @@
 import xmltodict
-from collections.abc import Sequence, Mapping
+import helpers.compressAndExtractRecipesHelper as compressor
+import helpers.helpers as helper
+import gzip
+import io
 
 class RecipeToUpdateRepository:
 
@@ -8,14 +11,12 @@ class RecipeToUpdateRepository:
         with open(xml_file, 'rb') as file:
             data = xmltodict.parse(file)
             elements = data['Board']['Children']['a:Element']
-            count = 1
             for element in elements:
                 try:
                     if element['a:Name'][0] != 'T':
-                        component_in_location = False
                         if isinstance(element['Bodies']['a:Body'], object):
-                            x = float(element['Bodies']['a:Body']['a:Position']['a:X'])
-                            y = float(element['Bodies']['a:Body']['a:Position']['a:Y'])
+                            x = float(element['RelativeLocation']['a:X'])
+                            y = float(element['RelativeLocation']['a:Y'])
                             for location in location_collection:
 
                                 if isinstance(x, float) and isinstance(y, float):
@@ -26,8 +27,6 @@ class RecipeToUpdateRepository:
                                         element['a:TemplateName'] = element['a:TemplateName'] + suffix_for_update
                                         element['PackageName'] = element['PackageName'] + suffix_for_update
                                         element['PartNumber'] = element['PartNumber'] + suffix_for_update
-
-                                        count+=1
                                         break
 
                 except TypeError as e:
@@ -36,3 +35,48 @@ class RecipeToUpdateRepository:
         updated_xml = xmltodict.unparse(data, pretty=True)
         with open(xml_file, 'w') as file:
             file.write(updated_xml)
+        path = helper.Helpers().level_down_path(xml_file, 1)
+        file_name = helper.Helpers().get_filename_from_path(xml_file)+'.board'
+        #compressor.CompressAndExtractRecipesHelper().extract_gzip(xml_file, file_name, path)
+
+
+    def update_board_components_in_selected_areas_gzip_stream(self,gzip_stream, location_collection,
+                                                              suffix_for_update):
+        # Decompress the gzip stream
+        with gzip.GzipFile(fileobj=gzip_stream, mode='rb') as gz:
+            data = xmltodict.parse(gz)
+
+        # The rest of your code remains unchanged, process the 'data' as before
+        elements = data['Board']['Children']['a:Element']
+        # ... processing logic ...
+        for element in elements:
+            try:
+                if element['a:Name'][0] != 'T':
+                    if isinstance(element['Bodies']['a:Body'], object):
+                        x = float(element['RelativeLocation']['a:X'])
+                        y = float(element['RelativeLocation']['a:Y'])
+                        for location in location_collection:
+
+                            if isinstance(x, float) and isinstance(y, float):
+                                if location.check_contains_component(x, y):
+                                    component_in_location = str(element['a:Name'])
+                                    print(component_in_location)
+                                    element['a:TemplateName'] = element['a:TemplateName'] + suffix_for_update
+                                    element['PackageName'] = element['PackageName'] + suffix_for_update
+                                    element['PartNumber'] = element['PartNumber'] + suffix_for_update
+                                    break
+
+            except TypeError as e:
+                print(e)
+
+        # Instead of writing to a file, you unparse the XML and return the updated XML as a string
+        updated_xml = xmltodict.unparse(data)
+
+        # Create a new gzip stream for the updated XML
+        updated_gzip_stream = io.BytesIO()
+        with gzip.GzipFile(fileobj=updated_gzip_stream, mode='wb') as gz:
+            gz.write(updated_xml.encode('utf-8'))  # Write the updated XML string as bytes
+
+        # Return the updated gzip stream
+        updated_gzip_stream.seek(0)
+        return updated_gzip_stream

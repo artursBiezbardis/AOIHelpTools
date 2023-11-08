@@ -6,12 +6,21 @@ import gzip
 class CompressAndExtractRecipesHelper:
 
     @staticmethod
-    def extract_compress_gzip(path, file_name, out_put_path=''):
-        file_path = path + '\\tmp\\' + file_name
+    def extract_gzip(path, file_name, out_put_path=''):
+        file_path = path + file_name
         with gzip.open(file_path, 'rb') as gz_file:
             file_content = gz_file.read()
         with open(path + out_put_path, 'wb') as out_put_file:
             out_put_file.write(file_content)
+
+    @staticmethod
+    def compress_gzip(path, file_name, out_put_path=''):
+        file_path = path + file_name
+        with open(file_path, 'rb') as gz_file:
+            file_content = gz_file.read()
+        with gzip.open(out_put_path, 'wb') as out_put_file:
+            out_put_file.write(file_content)
+
 
     @staticmethod
     def extract_zip(path, file_name):

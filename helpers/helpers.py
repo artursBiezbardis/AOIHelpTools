@@ -46,7 +46,7 @@ class Helpers:
             return False
 
     def correct_path_string(self, path: str) -> str:
-        return path.replace("/", "\\")
+        return path.replace('/', '\\')
 
     @staticmethod
     def get_files_in_folder(folder_path: str) -> list:
@@ -56,4 +56,18 @@ class Helpers:
     def has_extension(file_path, extension):
         _, file_extension = os.path.splitext(file_path)
         return file_extension == extension
-    
+
+    @staticmethod
+    def level_down_path(path: str, level: int) -> str:
+        path_list = path.split('/')
+        for _ in range(level):
+            path_list = path_list[:-1]
+
+        delimiter = '/'
+        return delimiter.join(path_list)
+
+    @staticmethod
+    def edit_hex_in_file(file_path, position, new_bytes):
+        with open(file_path, 'r+b') as file:
+            file.seek(position)  # Move to the desired position
+            file.write(bytes.fromhex(new_bytes))  # Write the new hex data

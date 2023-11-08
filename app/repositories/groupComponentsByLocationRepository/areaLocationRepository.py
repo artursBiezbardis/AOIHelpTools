@@ -18,8 +18,10 @@ class AreaLocationRepository:
                 self.area_location_collection.add_location_to_collection(
                     locationModel.AreaLocation(
                         location_name=str(element['a:Name']),
-                        x=float(element['Bodies']['a:Body']['a:Position']['a:X']),
-                        y=float(element['Bodies']['a:Body']['a:Position']['a:Y']),
+                        #x=float(element['Bodies']['a:Body']['a:Position']['a:X']),
+                        #y=float(element['Bodies']['a:Body']['a:Position']['a:Y']),
+                        x=float(element['RelativeLocation']['a:X']),
+                        y=float(element['RelativeLocation']['a:Y']),
                         height=float(element['Bodies']['a:Body']['a:Shape']['Height']),
                         width=float(element['Bodies']['a:Body']['a:Shape']['Base']),
                         offset_x=float(view_input['-X_OFFSET-']),
