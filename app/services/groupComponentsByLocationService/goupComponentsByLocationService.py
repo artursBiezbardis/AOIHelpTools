@@ -1,4 +1,3 @@
-import zipfile
 import app.models.LocationsCollection as areaLocationCollection
 import helpers.compressAndExtractRecipesHelper as compressAndExtractRecipes
 import helpers.helpers as help
@@ -56,9 +55,6 @@ class GroupComponentsByLocation:
 
                 with open(recipe_path + '/tmp/' + file, 'wb') as f_updated:
                     f_updated.write(updated_gzip_stream.read())
-
-                # edit recipe gzip hex to pass stream when opening recipe in cyberOptics AOI software
-                help.Helpers().edit_hex_in_file(recipe_path + '/tmp/' + file, 0, '1F8B0800000000000400')
 
         updated_recipe = recipe_path + '/' + help.Helpers().get_filename_from_path(recipe_path) + '_grouped.recipe'
 
