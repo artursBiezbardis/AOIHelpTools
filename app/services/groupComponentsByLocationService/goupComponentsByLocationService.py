@@ -5,6 +5,7 @@ import os
 import app.repositories.groupComponentsByLocationRepository.areaLocationRepository as areaLocation
 import app.repositories.groupComponentsByLocationRepository.recipeToUpdateRepository as updateRecipe
 import io
+import shutil
 
 
 class GroupComponentsByLocation:
@@ -12,7 +13,9 @@ class GroupComponentsByLocation:
     def main(self, view_input):
 
         area_location_collection = self.read_area_location_data(view_input)
-        self.update_component_in_recipe_gzip_stream(area_location_collection, view_input)
+        shutil.rmtree(view_input['-RECIPE_FOLDER_FOR_LOCATIONS_PATH-'])
+        recipe_name = self.update_component_in_recipe_gzip_stream(area_location_collection, view_input)
+        return recipe_name
 
     def read_area_location_data(self, view_input) -> areaLocationCollection.LocationsData([]):
         helpers = help.Helpers()
@@ -36,7 +39,7 @@ class GroupComponentsByLocation:
 
                 return data_for_area_locations
 
-    def update_component_in_recipe_gzip_stream(self, area_locations_collection, view_input):
+    def update_component_in_recipe_gzip_stream(self, area_locations_collection, view_input) -> str:
         helpers = help.Helpers()
         recipe_path = view_input['-RECIPE_FOLDER_TO_UPDATE_PATH-']
         list_of_gzip_files = self.prepare_recipe_data(recipe_path)
@@ -56,11 +59,14 @@ class GroupComponentsByLocation:
                 with open(recipe_path + '/tmp/' + file, 'wb') as f_updated:
                     f_updated.write(updated_gzip_stream.read())
 
-        updated_recipe = recipe_path + '/' + help.Helpers().get_filename_from_path(recipe_path) + '_grouped.recipe'
-
+        updated_recipe = recipe_path + '/' + (helpers.get_filename_from_path(recipe_path)). \
+            replace('-group', '-grouped.recipe')
+        os.remove(recipe_path + '/' + (helpers.get_filename_from_path(recipe_path))+'.recipe')
         compressAndExtractRecipes.CompressAndExtractRecipesHelper().compress_files_zip(updated_recipe,
                                                                                        list_of_gzip_files,
                                                                                        recipe_path + '/tmp/')
+
+        return helpers.get_filename_from_path(updated_recipe).replace('.recipe', '')
 
     @staticmethod
     def prepare_recipe_data(path_to_recipe):
