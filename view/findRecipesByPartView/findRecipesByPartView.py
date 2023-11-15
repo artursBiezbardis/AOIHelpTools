@@ -39,6 +39,8 @@ class FindRecipesByPartView:
 
     def run_window(self):
         recipes = recipesList.RecipesListService()
+        recipes_text_list = ''
+        recipes_results = {}
         if self.window_hidden:
             self.window.un_hide()
 
@@ -59,4 +61,12 @@ class FindRecipesByPartView:
                     self.window['-COLLECT-'].update(disabled=True)
             elif event == '-COLLECT-':
                 recipes_results = recipes.formatListForTable(values['-NAME-'], values['-SELECTION-'][0])
-                self.window['-RECIPES-'].update(recipes_results)
+                for value, key in recipes_results.items():
+                    recipes_text_list += value + '\n'
+
+                self.window['-RECIPES-'].update(recipes_text_list)
+                self.window['-UPDATE_RECIPES-'].update(disabled=False)
+
+            elif event == '-UPDATE_RECIPES-':
+                test = 'test'
+                #updateRecipesService.update_recipes(recipes_results, values['-NAME-'], values['-SELECTION-'][0])

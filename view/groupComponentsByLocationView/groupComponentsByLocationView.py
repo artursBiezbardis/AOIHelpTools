@@ -19,6 +19,9 @@ class GroupComponents:
     read_locations = '-RECIPE_FOLDER_FOR_LOCATIONS_PATH-'
 
     layout = [[
+        sg.Text('STEP 1')
+               ],
+              [
         view_layouts.generate_layout_for_path_browsers(
             prepare_recipe_layout,
             t_b_color), sg.B('Recipe to prepare', key='-Prepare-', disabled=True, enable_events=True),
@@ -37,6 +40,9 @@ class GroupComponents:
         ],
         [
             sg.Stretch(t_b_color)
+        ],
+        [
+            sg.Text('STEP 2')
         ],
         [
             view_layouts.generate_layout_for_path_browsers(
@@ -98,14 +104,6 @@ class GroupComponents:
                 input_data = values
                 modified_recipe = group.GroupComponentsByLocation().main(input_data)
                 sg.popup_get_text('recipe is created', title='Done', default_text=modified_recipe)
-            elif self.validate_input_prefix(
-                    values[self.recipe_to_update],
-                    'group'
-            ) and self.validate_input_prefix(
-                values[self.read_locations],
-                'locations'
-            ):
-                self.window['-Modify-'].update(disabled=False)
             elif event == '-RECIPE_TO_PREPARE_PATH-':
                 self.window['-Prepare-'].update(disabled=False)
             elif event == '-Prepare-':
@@ -126,6 +124,15 @@ class GroupComponents:
                                   f'8.Now you good to press OK , add suffix for components\n'
                                   f' and click on Create modified recipe button \n'
                                   , default_text=location_recipe)
+                self.window['-Modify-'].update(disabled=False)
+            if self.validate_input_prefix(
+                    values[self.recipe_to_update],
+                    'group'
+            ) and self.validate_input_prefix(
+                values[self.read_locations],
+                'locations'
+            ):
+                self.window['-Modify-'].update(disabled=False)
 
     @staticmethod
     def validate_input_prefix(value: str, prefix: str) -> bool:

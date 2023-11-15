@@ -13,8 +13,8 @@ class GroupComponentsByLocation:
     def main(self, view_input):
 
         area_location_collection = self.read_area_location_data(view_input)
-        shutil.rmtree(view_input['-RECIPE_FOLDER_FOR_LOCATIONS_PATH-'])
         recipe_name = self.update_component_in_recipe_gzip_stream(area_location_collection, view_input)
+        shutil.rmtree(view_input['-RECIPE_FOLDER_FOR_LOCATIONS_PATH-'])
         return recipe_name
 
     def read_area_location_data(self, view_input) -> areaLocationCollection.LocationsData([]):

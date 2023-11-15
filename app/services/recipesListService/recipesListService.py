@@ -12,7 +12,7 @@ class RecipesListService:
 
     def formatListForTable(self, entry: str, entryType: str):
         directories = (recipesList.RecipesListRepository()).folder_dict(self.recipesFolder)
-        entryRecipes = ''
+        recipes_list = {}
         if entryType == 'Component':
             entryType = 'TemplateId'
         elif entryType == 'Package':
@@ -26,6 +26,6 @@ class RecipesListService:
                 result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, value + self.dBSubLocation)
 
             if result:
-                entryRecipes += key+'\n'
+                recipes_list[key] = value
 
-        return entryRecipes
+        return recipes_list
