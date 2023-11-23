@@ -47,3 +47,20 @@ class SQLiteRepository:
         settings_list = c.fetchall()
         conn.close()
         return settings_list
+
+    def get_component_package_name(self, table, name, data_base):
+
+        conn = self.connectToDB(data_base)
+        c = conn.cursor()
+        # Adjusted query to use the correct table name 'Component'
+        query = f'SELECT packageName FROM {table} WHERE TemplateId = ?'
+        c.execute(query, (name,))
+
+        # Fetching the results again
+        package_names = c.fetchone()
+
+        # Closing the connection
+        conn.close()
+
+        # Display the results
+        return package_names

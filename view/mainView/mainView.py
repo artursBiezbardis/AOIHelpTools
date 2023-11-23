@@ -70,7 +70,4 @@ class MainView:
                 break
             self.window.close()
 
-    def get_event(self):
-        test = self.view
 
-        return test

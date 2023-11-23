@@ -24,7 +24,7 @@ class ViewHelper:
                     background_color=text_background_color
                 ),
                  sg.Input(
-                     #default_text=('' if stored_input == [] else stored_input[name]),
+                     default_text=('' if stored_input == [] else stored_input[name]),
                      key=name,
                      enable_events=True
                  ),

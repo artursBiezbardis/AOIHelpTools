@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import createWindow as createWindow
 import app.services.recipesListService.recipesListService as recipesList
+import app.services.recipesListService.updateRecipesService as updateRecipesService
 
 
 class FindRecipesByPartView:
@@ -10,7 +11,7 @@ class FindRecipesByPartView:
         [
             [
                 sg.Input(key='-NAME-', enable_events=True, size=(10, 1)),
-                sg.Listbox(['Component', 'Package'],
+                sg.Listbox(['Component'],
                            key='-SELECTION-',
                            select_mode=True,
                            enable_events=True,
@@ -23,7 +24,7 @@ class FindRecipesByPartView:
             sg.B('Collect', disabled=True, key='-COLLECT-'),
             sg.Button('Cancel')
          ],
-        [sg.Multiline('', key='-RECIPES-', size=(35, 5))],
+        [sg.Multiline('', key='-RECIPES-', size=(60, 5))],
         [sg.B('Update part in all recipes', disabled=True, key='-UPDATE_RECIPES-')]
     ]
 
@@ -39,8 +40,10 @@ class FindRecipesByPartView:
 
     def run_window(self):
         recipes = recipesList.RecipesListService()
+        update_recipes = updateRecipesService.UpdateRecipesService()
         recipes_text_list = ''
         recipes_results = {}
+        part_name = ''
         if self.window_hidden:
             self.window.un_hide()
 
@@ -55,18 +58,21 @@ class FindRecipesByPartView:
                 self.window_hidden = True
                 break
             elif event == '-NAME-':
-                if values['-NAME-']:
+                part_name = values['-NAME-'].upper()
+                if part_name != '':
                     self.window['-COLLECT-'].update(disabled=False)
                 else:
                     self.window['-COLLECT-'].update(disabled=True)
             elif event == '-COLLECT-':
-                recipes_results = recipes.formatListForTable(values['-NAME-'], values['-SELECTION-'][0])
-                for value, key in recipes_results.items():
-                    recipes_text_list += value + '\n'
+                recipes_text_list = ''
+                recipes_results = recipes.formatListForTable(part_name, values['-SELECTION-'][0])
+                for key, value in recipes_results.items():
+
+                    recipes_text_list += key + '  Package:' + value['Package'] + '\n'
 
                 self.window['-RECIPES-'].update(recipes_text_list)
                 self.window['-UPDATE_RECIPES-'].update(disabled=False)
 
             elif event == '-UPDATE_RECIPES-':
-                test = 'test'
-                #updateRecipesService.update_recipes(recipes_results, values['-NAME-'], values['-SELECTION-'][0])
+
+                update_recipes.update_recipes(recipes_results, part_name, values['-SELECTION-'][0])

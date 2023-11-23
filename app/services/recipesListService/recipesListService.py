@@ -8,10 +8,11 @@ class RecipesListService:
     dBSubLocation = '\\TemplateLibrary\\Templates.db'
     table = 'Component'
     setting_name = '-RECIPES_PATH-'
-    recipesFolder = settings.SettingsService().get_setting(setting_name)
+
 
     def formatListForTable(self, entry: str, entryType: str):
-        directories = (recipesList.RecipesListRepository()).folder_dict(self.recipesFolder)
+        recipesFolder = settings.SettingsService().get_setting(self.setting_name)
+        directories = (recipesList.RecipesListRepository()).folder_dict(recipesFolder)
         recipes_list = {}
         if entryType == 'Component':
             entryType = 'TemplateId'
@@ -19,13 +20,15 @@ class RecipesListService:
             entryType = 'PackageName'
         recipesRepository = sql.SQLiteRepository()
         for key, value in directories.items():
+            recipe_path = value
+            template_data_base = recipe_path + self.dBSubLocation
             if entryType == 'TemplateId':
                 entry = entry.upper()
-                result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, value+self.dBSubLocation)
+                result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, template_data_base)
             else:
-                result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, value + self.dBSubLocation)
-
+                result = recipesRepository.checkIfEnteryExist(self.table, entryType, entry, template_data_base)
+            package = recipesRepository.get_component_package_name(self.table, entry, template_data_base)
             if result:
-                recipes_list[key] = value
+                recipes_list[key] = {'location': value, 'Package': package[0]}
 
         return recipes_list

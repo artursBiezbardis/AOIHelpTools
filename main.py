@@ -10,6 +10,7 @@ findRecipes = FindRecipes.FindRecipesByPartView()
 settings = settingsView.Settings()
 groupComponents = GroupComponents.GroupComponents()
 
+
 view = 'main view'
 
 while view:

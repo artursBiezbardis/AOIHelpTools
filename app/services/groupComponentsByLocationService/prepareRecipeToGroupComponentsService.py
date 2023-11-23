@@ -10,11 +10,9 @@ import helpers.compressAndExtractRecipesHelper as compressAndExtractRecipes
 class PrepareRecipeToGroupComponentsService:
 
     def main(self, recipe_path):
-
         return self.create_process_recipes(recipe_path)
 
     def create_process_recipes(self, recipe_path: str) -> object:
-
         locations_recipe_suffix = '-locations'
         group_recipe_suffix = '-group'
         locations_recipe_folder_path = recipe_path + locations_recipe_suffix
@@ -33,9 +31,10 @@ class PrepareRecipeToGroupComponentsService:
         process_recipes_path = {'locations recipe': locations_recipe_folder_path,
                                 'group recipe': group_recipe_folder_path
                                 }
-        shutil.rmtree(locations_recipe_folder_path+'/tmp/')
+        shutil.rmtree(locations_recipe_folder_path + '/tmp/')
 
         return process_recipes_path
+
     def prepare_locations_recipe_gzip_stream(self, locations_recipe_folder_path):
         helpers = helper.Helpers()
         group_components = groupComponents.GroupComponentsByLocation()
@@ -43,8 +42,6 @@ class PrepareRecipeToGroupComponentsService:
         list_of_gzip_files = group_components.prepare_recipe_data(recipe_path)
         self.create_copy_of_first_board(recipe_path)
         list_of_gzip_files.append('1.board')
-
-
 
         with open(recipe_path + '/tmp/0.board', 'rb') as f:
             gzip_stream = io.BytesIO(f.read())
@@ -60,6 +57,7 @@ class PrepareRecipeToGroupComponentsService:
         compressAndExtractRecipes.CompressAndExtractRecipesHelper().compress_files_zip(updated_recipe,
                                                                                        list_of_gzip_files,
                                                                                        recipe_path + '/tmp/')
+
     @staticmethod
     def create_copy_of_first_board(locations_recipe_folder_path):
         board1_path = locations_recipe_folder_path + '/tmp/0.board'
