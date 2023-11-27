@@ -4,19 +4,19 @@ import PySimpleGUI as sg
 
 class MainView:
     title: str = 'main view'
-    button1Title: str = 'Compare Mash'
-    buttonCancelTitle: str = 'Cancel'
-    button2Title: str = 'Find Recipes by Part'
-    buttonSettings: str = 'Settings'
-    buttonGroupComponents: str = 'Group Components'
+    button1_title: str = 'Compare Mash'
+    button_cancel_title: str = 'Cancel'
+    button2_title: str = 'Find Recipes by Part'
+    button_settings: str = 'Settings'
+    button_group_components: str = 'Group Components'
     window_size = (600, 80)
     layout: [[sg.Button]] = [[
-        sg.Button(button1Title),
-        sg.Button(button2Title),
-        sg.Button(buttonGroupComponents),
+        sg.Button(button1_title),
+        sg.Button(button2_title),
+        sg.Button(button_group_components),
     ], [
-        sg.Button(buttonSettings),
-        sg.Button(buttonCancelTitle)
+        sg.Button(button_settings),
+        sg.Button(button_cancel_title)
     ]]
 
     def __init__(self):

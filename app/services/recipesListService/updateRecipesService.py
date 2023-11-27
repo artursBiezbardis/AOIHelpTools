@@ -6,6 +6,7 @@ import shutil
 import app.repositories.recipesListRepository.updateRecipesRepository as updateRecipesRepository
 from datetime import datetime
 
+
 class UpdateRecipesService:
 
     def update_recipes(self, recipes_results, name, selection):
@@ -15,6 +16,7 @@ class UpdateRecipesService:
             self.prepare_recipe_data(recipe_folder_path)
             self.set_to_shared_stream(recipe_folder_path, name, value['Package'], selection)
             shutil.rmtree(recipe_folder_path + '\\tmp')
+
     def set_to_shared_stream(self, recipe_path, name, package_name, selection) -> str:
         helpers = help.Helpers()
         backup_dir = 'backupRecipes'

@@ -7,8 +7,8 @@ import app.services.mashFileServices.exportMashToExcelService as exportExcel
 class MashCompare:
     title = 'Select data and files to compare'
     window_size = (1200, 500)
-    mashCompareTable = []
-    mashCompareTableHeadings = [
+    mash_compare_table = []
+    mash_compare_table_headings = [
         'Mash',
         'Name',
         'Part Number',
@@ -49,9 +49,9 @@ class MashCompare:
 
         ],
         [sg.Table(
-            mashCompareTable,
+            mash_compare_table,
             key='-TABLE-',
-            headings=mashCompareTableHeadings,
+            headings=mash_compare_table_headings,
             visible=False,
             col_widths=[24, 5, 8, 30, 6, 6, 5, 10, 10, 15],
             expand_x=True,
@@ -78,7 +78,7 @@ class MashCompare:
             self.window.un_hide()
         while True:
             event, values = self.window.read()
-            setEmptyCellsToMashFiles = {
+            set_empty_cells_to_mash_files = {
                 '-PART_NUMBER-': values['-PART_NUMBER-'],
                 '-DESCRIPTION-': values['-DESCRIPTION-'],
                 '-X_CORD-': values['-X_CORD-'],
@@ -96,12 +96,13 @@ class MashCompare:
                 self.window_hidden = True
                 break
             elif event == '-EXCEL-':
-                exportExcel.ExportToExcelService().create_excel(table, self.mashCompareTableHeadings,)
+                exportExcel.ExportToExcelService().create_excel(table, self.mash_compare_table_headings,)
             elif event == '-COMPARE-':
-                table = (mashService.MashFileService().compare_two_mashes(values['-FILE1-'], values['-FILE2-'], setEmptyCellsToMashFiles))[0]
+                table = (mashService.MashFileService().
+                         compare_two_mashes(values['-FILE1-'], values['-FILE2-'], set_empty_cells_to_mash_files))[0]
                 self.window['-TABLE-'].update(values=table, visible=True)
                 self.window['-EXCEL-'].update(disabled=False)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
             elif event == '-EXCEL-':
-                exportExcel.ExportToExcelService().create_excel(table, self.mashCompareTableHeadings)
+                exportExcel.ExportToExcelService().create_excel(table, self.mash_compare_table_headings)

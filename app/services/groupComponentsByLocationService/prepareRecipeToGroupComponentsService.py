@@ -40,8 +40,8 @@ class PrepareRecipeToGroupComponentsService:
         group_components = groupComponents.GroupComponentsByLocation()
         recipe_path = locations_recipe_folder_path
         list_of_gzip_files = group_components.prepare_recipe_data(recipe_path)
-        self.create_copy_of_first_board(recipe_path)
-        list_of_gzip_files.append('1.board')
+        self.create_copy_of_first_board(recipe_path, list_of_gzip_files)
+        list_of_gzip_files = self.create_copy_of_first_board(recipe_path, list_of_gzip_files)
 
         with open(recipe_path + '/tmp/0.board', 'rb') as f:
             gzip_stream = io.BytesIO(f.read())
@@ -59,7 +59,13 @@ class PrepareRecipeToGroupComponentsService:
                                                                                        recipe_path + '/tmp/')
 
     @staticmethod
-    def create_copy_of_first_board(locations_recipe_folder_path):
+    def create_copy_of_first_board(locations_recipe_folder_path, list_of_gzip_files):
         board1_path = locations_recipe_folder_path + '/tmp/0.board'
         destination_path = locations_recipe_folder_path + '/tmp/1.board'
+        if '1.board' in list_of_gzip_files:
+            os.remove(destination_path)
+        else:
+            list_of_gzip_files.append('1.board')
         shutil.copy(board1_path, destination_path)
+
+        return list_of_gzip_files

@@ -4,6 +4,7 @@ from numpy import ndarray
 
 class MashFileRepository:
 
-    def get_mash_table(self, location: str) -> ndarray:
+    @staticmethod
+    def get_mash_table(location: str) -> ndarray:
 
         return (pd.read_excel(location)).to_numpy()
