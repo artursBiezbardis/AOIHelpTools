@@ -3,7 +3,8 @@ import os
 
 class RecipesListRepository:
 
-    def folder_dict(self, path):
+    @staticmethod
+    def folder_dict(path):
         dirs = {}
         for name in os.listdir(path):
             if os.path.isdir(os.path.join(path, name)):

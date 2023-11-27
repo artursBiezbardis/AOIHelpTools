@@ -65,7 +65,7 @@ class FindRecipesByPartView:
                     self.window['-COLLECT-'].update(disabled=True)
             elif event == '-COLLECT-':
                 recipes_text_list = ''
-                recipes_results = recipes.formatListForTable(part_name, values['-SELECTION-'][0])
+                recipes_results = recipes.format_list_for_table(part_name, values['-SELECTION-'][0])
                 for key, value in recipes_results.items():
 
                     recipes_text_list += key + '  Package:' + value['Package'] + '\n'

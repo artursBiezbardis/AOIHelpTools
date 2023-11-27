@@ -1,4 +1,4 @@
-import PySimpleGUI as sg
+import PySimpleGUI as simpleGui
 
 
 class CreateWindow:
@@ -6,9 +6,9 @@ class CreateWindow:
     element_justification = 'center'
 
     def create(self, title: str, layout: list, size: tuple) -> object:
-        sg.theme('DarkGray2')
+        simpleGui.theme('DarkGray2')
 
-        return sg.Window(
+        return simpleGui.Window(
             title=title,
             layout=layout,
             size=size,
