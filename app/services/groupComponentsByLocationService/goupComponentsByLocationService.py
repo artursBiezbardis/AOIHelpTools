@@ -1,11 +1,12 @@
+import io
+import os
+import shutil
+
 import app.models.LocationsCollection as areaLocationCollection
+import app.repositories.groupComponentsByLocationRepository.areaLocationRepository as areaLocation
+import app.repositories.groupComponentsByLocationRepository.updateRecipeComponentsRepository as updateRecipe
 import helpers.compressAndExtractRecipesHelper as compressAndExtractRecipes
 import helpers.helpers as help
-import os
-import app.repositories.groupComponentsByLocationRepository.areaLocationRepository as areaLocation
-import app.repositories.groupComponentsByLocationRepository.recipeToUpdateRepository as updateRecipe
-import io
-import shutil
 
 
 class GroupComponentsByLocation:
@@ -47,7 +48,7 @@ class GroupComponentsByLocation:
                 with open(recipe_path + '/tmp/' + file, 'rb') as f:
                     gzip_stream = io.BytesIO(f.read())
 
-                recipe_repo = updateRecipe.RecipeToUpdateRepository()
+                recipe_repo = updateRecipe.UpdateRecipeComponentsRepository()
                 updated_gzip_stream = recipe_repo.update_board_components_in_selected_areas_gzip_stream(
                     gzip_stream,
                     area_locations_collection,

@@ -1,10 +1,11 @@
-import shutil
-import os
-import helpers.helpers as helper
-import app.services.groupComponentsByLocationService.goupComponentsByLocationService as groupComponents
 import io
-import app.repositories.groupComponentsByLocationRepository.recipeToUpdateRepository as updateRecipe
+import os
+import shutil
+
+import app.repositories.groupComponentsByLocationRepository.updateRecipeComponentsRepository as updateRecipe
+import app.services.groupComponentsByLocationService.goupComponentsByLocationService as groupComponents
 import helpers.compressAndExtractRecipesHelper as compressAndExtractRecipes
+import helpers.helpers as helper
 
 
 class PrepareRecipeToGroupComponentsRepository:
@@ -19,7 +20,7 @@ class PrepareRecipeToGroupComponentsRepository:
         with open(recipe_path + '/tmp/0.board', 'rb') as f:
             gzip_stream = io.BytesIO(f.read())
 
-        recipe_repo = updateRecipe.RecipeToUpdateRepository()
+        recipe_repo = updateRecipe.UpdateRecipeComponentsRepository()
         updated_gzip_stream = recipe_repo.prepare_locations_recipe_gzip_stream(gzip_stream)
 
         with open(recipe_path + '/tmp/0.board', 'wb') as f_updated:

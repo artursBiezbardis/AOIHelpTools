@@ -1,9 +1,10 @@
-import xmltodict
 import gzip
 import io
 
+import xmltodict
 
-class RecipeToUpdateRepository:
+
+class UpdateRecipeComponentsRepository:
 
     @staticmethod
     def update_board_components_in_selected_areas(xml_file: str, location_collection: list, suffix_for_update):

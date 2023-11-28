@@ -28,7 +28,6 @@ class AreaLocationRepository:
                             up_line_offset=float(view_input['-UP_OFFSET-']),
                             down_line_offset=float(view_input['-DOWN_OFFSET-'])
                         ))
-
             elif isinstance(elements, dict):
                 self.area_location_collection.add_location_to_collection(
                     locationModel.AreaLocation(
