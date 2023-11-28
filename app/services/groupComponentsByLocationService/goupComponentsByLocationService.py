@@ -24,8 +24,6 @@ class GroupComponentsByLocation:
         recipe_path = view_input['-RECIPE_FOLDER_FOR_LOCATIONS_PATH-']
         list_of_gzip_files = self.prepare_recipe_data(recipe_path)
 
-        # list of recipe files extracted from recipe file
-
         for file in list_of_gzip_files:
             if helpers.has_extension(file, '.board'):
                 gzip_out_name = os.path.splitext(file)[0]

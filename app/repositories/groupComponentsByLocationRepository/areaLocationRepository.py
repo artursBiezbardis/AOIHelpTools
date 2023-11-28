@@ -14,7 +14,6 @@ class AreaLocationRepository:
             elements = data['Board']['Children']['a:Element']
             if isinstance(elements, list):
                 for element in elements:
-
                     self.area_location_collection.add_location_to_collection(
                         locationModel.AreaLocation(
                             location_name=str(element['a:Name']),
@@ -28,8 +27,8 @@ class AreaLocationRepository:
                             right_line_offset=float(view_input['-RIGHT_OFFSET-']),
                             up_line_offset=float(view_input['-UP_OFFSET-']),
                             down_line_offset=float(view_input['-DOWN_OFFSET-'])
-
                         ))
+
             elif isinstance(elements, dict):
                 self.area_location_collection.add_location_to_collection(
                     locationModel.AreaLocation(
