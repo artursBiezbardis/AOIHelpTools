@@ -3,13 +3,14 @@ import view.mashCompareView.mashCompareView as MashCompare
 import view.findRecipesByPartView.findRecipesByPartView as FindRecipes
 import view.settingsView.settingsView as settingsView
 import view.groupComponentsByLocationView.groupComponentsByLocationView as GroupComponents
+import view.compareRecipeMashView.compareRecipeMashView as CompareRecipeMash
 
 main_view = MainView.MainView()
 mash_compare_view = MashCompare.MashCompare()
 find_recipes = FindRecipes.FindRecipesByPartView()
 settings = settingsView.Settings()
 group_components = GroupComponents.GroupComponents()
-
+compare_recipe_mash = CompareRecipeMash.CompareRecipeMashView()
 
 view = 'main view'
 
@@ -29,3 +30,6 @@ while view:
     elif view == 'Group Components':
         group_components.run_window()
         view = group_components.view
+    elif view == 'Compare Recipe Mash':
+        compare_recipe_mash.run_window()
+        view = compare_recipe_mash.view

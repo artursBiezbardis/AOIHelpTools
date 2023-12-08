@@ -9,11 +9,14 @@ class MainView:
     button2_title: str = 'Find Recipes by Part'
     button_settings: str = 'Settings'
     button_group_components: str = 'Group Components'
+    button_compare_recipe_mash: str = 'Compare Recipe Mash'
+
     window_size = (600, 80)
     layout: [[sg.Button]] = [[
         sg.Button(button1_title),
         sg.Button(button2_title),
         sg.Button(button_group_components),
+        sg.Button(button_compare_recipe_mash),
     ], [
         sg.Button(button_settings),
         sg.Button(button_cancel_title)
@@ -62,12 +65,21 @@ class MainView:
                 self.window.hide()
                 self.window_hidden = True
                 break
+
             elif event == 'Group Components':
 
                 self.view = event
                 self.window.hide()
                 self.window_hidden = True
                 break
+
+            elif event == 'Compare Recipe Mash':
+
+                self.view = event
+                self.window.hide()
+                self.window_hidden = True
+                break
+
             self.window.close()
 
 
