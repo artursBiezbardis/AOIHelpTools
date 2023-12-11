@@ -11,11 +11,11 @@ class CompareRecipeMashView:
     window_size = (1200, 500)
     mash_compare_table = []
     table_headings = [
-        'Mash',
-        'Recipe'
-        'Name',
-        'Part Number',
-        'Recipe Part Number',
+        'Component',
+        'Recipe Part Name',
+        'Mash Part Name',
+        'Mash Mount',
+        'Mash Type',
         ]
 
     layout = [
@@ -65,6 +65,7 @@ class CompareRecipeMashView:
     def run_window(self):
 
         compare = compareRecipeMash.CompareRecipeMashService()
+        table = []
         if self.window_hidden:
             self.window.un_hide()
         while True:
@@ -80,15 +81,12 @@ class CompareRecipeMashView:
                 break
             elif event == '-EXCEL-':
                 test = 'test'
-                #exportExcel.ExportToExcelService().create_excel(table, self.mash_compare_table_headings,)
+                exportExcel.ExportToExcelService().create_excel(table, self.table_headings)
             elif event == '-COMPARE-':
-                compare.main(values['-FILE1-'], values['-FILE2-'])
-                # table = (mashService.MashFileService().
-                #          compare_two_mashes(values['-FILE1-'], values['-FILE2-'], set_empty_cells_to_mash_files))[0]
-                # self.window['-TABLE-'].update(values=table, visible=True)
-                # self.window['-EXCEL-'].update(disabled=False)
+                table = compare.main(values['-FILE1-'], values['-FILE2-'])
+                self.window['-TABLE-'].update(values=table, visible=True)
+                self.window['-EXCEL-'].update(disabled=False)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
             elif event == '-EXCEL-':
-                test = 'test'
-                # exportExcel.ExportToExcelService().create_excel(table, self.mash_compare_table_headings)
+                exportExcel.ExportToExcelService().create_excel(table, self.table_headings)
