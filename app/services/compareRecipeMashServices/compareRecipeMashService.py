@@ -115,12 +115,12 @@ class CompareRecipeMashService:
         mash = mash_data[2]
         if side != 'no_side':
             for part, value in mash.items():
-                if side in value[6].lower() and isinstance(value[1], float) is False and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
+                if isinstance(value[1], float) is False and side in value[6].lower() and not isinstance(value[8], float) and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
                     board_side_data[part] = {'component': value[0], 'part': value[1], 'Type': value[8],
                                              'mount': value[7]}
         else:
             for part, value in mash.items():
-                if isinstance(value[1], float) is False and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
+                if not isinstance(value[1], float) is False and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
                     board_side_data[part] = {'component': value[0], 'part': value[1], 'Type': value[8],
                                              'mount': value[7]}
 
