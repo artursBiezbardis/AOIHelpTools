@@ -15,7 +15,7 @@ class CompareRecipeMashView:
         'Recipe Part Name',
         'Mash Part Name',
         'Mash Mount',
-        'Mash Type',
+        'Mash Type'
         ]
 
     layout = [

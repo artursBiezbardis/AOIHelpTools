@@ -19,7 +19,8 @@ class MashCompare:
         'Side',
         'Mount',
         'Type',
-        'Remarks']
+        'Remarks'
+    ]
 
     layout = [
         [sg.Text('Check data needed to compare with check Buttons and browse mash files to compare')],

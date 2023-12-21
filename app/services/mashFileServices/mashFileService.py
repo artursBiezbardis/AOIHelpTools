@@ -14,13 +14,14 @@ class MashFileService:
         mash_data = {}
         file_name = helper.Helpers().get_filename_from_path(location)
         for item in mash_table:
-
-            if self.is_valid_component_name(item[0]):
-                item = np.array(item)
-                item = item.tolist()
-                item = self.format_data_content(item)
-                mash_data[item[0]] = item
-                component_names.append(item[0])
+            if not isinstance(item[0], (int, float, complex)):
+                component_name = item[0].strip()
+                if self.is_valid_component_name(component_name):
+                    item = np.array(item)
+                    item = item.tolist()
+                    item = self.format_data_content(item)
+                    mash_data[component_name] = item
+                    component_names.append(component_name)
         results = [file_name, component_names, mash_data]
 
         return results
@@ -105,19 +106,23 @@ class MashFileService:
 
     @staticmethod
     def format_data_content(item):
+        component = item
+        for key, value in enumerate(component):
+            if key >= 10:
+                del component[key]
+            else:
+                if not isinstance(value, (int, float)):
+                    str_value = str(value).strip().replace(",", ".")
 
-        for key, value in enumerate(item):
-            if not isinstance(value, (int, float, complex)):
+                    if not helper.Helpers().is_number(str_value):
+                        str_value = str_value.upper()
+                        str_value = helper.Helpers().replace_special_letters(str_value)
+                    else:
+                        str_value = float(str_value)
 
-                item[key] = value.replace(",", ".")
+                    component[key] = str_value
 
-                if not helper.Helpers().is_number(item[key]):
-                    item[key] = value.upper()
-                if helper.Helpers().is_number(item[key]):
-                    item[key] = float(item[key])
-                if not helper.Helpers().is_number(item[key]):
-                    item[key] = helper.Helpers().replace_special_letters(item[key])
-        return item
+        return component
 
     @staticmethod
     def convert_to_list_mash_columns_not_to_compare(mash_values_not_compared):
