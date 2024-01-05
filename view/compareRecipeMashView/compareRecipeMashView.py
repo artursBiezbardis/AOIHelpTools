@@ -3,7 +3,7 @@ import createWindow as createWindow
 import app.services.settingsService.settingsService as settings
 import app.services.compareRecipeMashServices.compareRecipeMashService as compareRecipeMash
 import app.services.mashFileServices.exportMashToExcelService as exportExcel
-
+import app.services.compareRecipeMashServices.updateRecipeComponentsFromMash as updateRecipe
 
 class CompareRecipeMashView:
     get_settings = settings.SettingsService()
@@ -49,7 +49,8 @@ class CompareRecipeMashView:
             justification='center',
             vertical_scroll_only=False,
         )],
-        []
+        [],
+        [sg.Button('Update recipe diff', key='-UPDATE-', disabled=True, enable_events=True)]
 
     ]
 
@@ -65,6 +66,7 @@ class CompareRecipeMashView:
     def run_window(self):
 
         compare = compareRecipeMash.CompareRecipeMashService()
+        update_recipe = updateRecipe.UpdateRecipeComponentsFromMash()
         table = []
         if self.window_hidden:
             self.window.un_hide()
@@ -79,14 +81,22 @@ class CompareRecipeMashView:
                 self.window.hide()
                 self.window_hidden = True
                 break
+
+            elif event == '-UPDATE-':
+                updateRecipe.UpdateRecipeComponentsFromMash().main(table, values['-FILE1-'])
+                #table = compare.main(values['-FILE1-'], values['-FILE2-'])
+                #self.window['-TABLE-'].update(values=table, visible=True)
             elif event == '-EXCEL-':
-                test = 'test'
                 exportExcel.ExportToExcelService().create_excel(table, self.table_headings)
             elif event == '-COMPARE-':
                 table = compare.main(values['-FILE1-'], values['-FILE2-'])
                 self.window['-TABLE-'].update(values=table, visible=True)
                 self.window['-EXCEL-'].update(disabled=False)
+                if update_recipe.validate_table_for_update(table):
+                    self.window['-UPDATE-'].update(disabled=False)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
             elif event == '-EXCEL-':
                 exportExcel.ExportToExcelService().create_excel(table, self.table_headings)
+
+
