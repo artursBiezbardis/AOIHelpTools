@@ -1,4 +1,5 @@
-import app.services.groupComponentsByLocationService.goupComponentsByLocationService as prepareRecipe
+import utilities.recipeProcessUtilities as prepareRecipe
+# import app.services.groupComponentsByLocationService.goupComponentsByLocationService as prepareRecipe
 import app.services.mashFileServices.mashFileService as mashService
 import re
 import helpers.helpers as helper
@@ -12,14 +13,14 @@ class CompareRecipeMashService:
 
     def main(self, recipe_path, mash_path):
 
-        prepare_recipe = prepareRecipe.GroupComponentsByLocation()
+        prepare_recipe = prepareRecipe.RecipeProcessUtilities()
 
         recipe_folder_path = self.parse_recipe_folder_path(recipe_path)
         mash_service = mashService.MashFileService()
         board_side = self.pcb_side(recipe_path)
         mash_data = mash_service.extract_mash_data(mash_path)
         board_side_mash_data = self.get_board_side_data(mash_data, board_side)
-        prepare_recipe.prepare_recipe_data(recipe_folder_path)
+        prepare_recipe.prepare_tmp_recipe_data(recipe_path)
         table = self.compare_recipe_to_mash(recipe_folder_path, board_side_mash_data)
 
         return table
