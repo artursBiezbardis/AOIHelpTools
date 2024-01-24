@@ -1,5 +1,6 @@
 import utilities.recipeProcessUtilities as recipeProcess
 import app.repositories.compareRecipeMashRepository.updateBoardComponentsFromMashRepository as updateBoard
+import app.repositories.compareRecipeMashRepository.setUpdatedPartsToSharedRepository as updatePanel
 import utilities.backUpUtilities as recipeBackUp
 import os
 import helpers.helpers as helper
@@ -14,6 +15,8 @@ class UpdateRecipeComponentsFromMash:
         recipe_gzip_files = recipe_process.prepare_tmp_recipe_data(recipe_path)
         update_dictionary = self.get_components_for_update(table)
         self.update_recipe_boards(recipe_gzip_files, update_dictionary)
+        parts_list = self.get_part_list(update_dictionary)
+        updatePanel.SetUpdatedPartsToSharedRepository().main(parts_list, recipe_gzip_files['gzip_extract_path']+'/Panel')
         backup_dir = os.path.dirname(recipe_path)+'/backupRecipes'
         recipeBackUp.BackUpUtilities.create_backup_for_file(backup_dir, recipe_path, 'recipe_before_update_from_mash_')
         list_of_gzip_files = helpers.get_files_in_folder(recipe_gzip_files['gzip_extract_path'])
@@ -46,3 +49,16 @@ class UpdateRecipeComponentsFromMash:
             updateBoard.UpdateRecipeBoardComponentsFromMashRepository()\
                 .update_board_components(board_path, update_dictionary)
 
+    def set_parts_to_shared(self, update_dictionary):
+        part_list = self.get_part_list(update_dictionary)
+
+        return part_list
+
+    @staticmethod
+    def get_part_list(update_dictionary):
+        part_list = []
+        for key, val in update_dictionary.items():
+            if val not in part_list:
+                part_list.append(val)
+
+        return part_list
