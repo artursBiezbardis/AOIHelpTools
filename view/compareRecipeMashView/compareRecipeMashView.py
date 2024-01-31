@@ -50,7 +50,12 @@ class CompareRecipeMashView:
             vertical_scroll_only=False,
         )],
         [],
-        [sg.Button('Update recipe diff', key='-UPDATE-', disabled=True, enable_events=True)]
+        [sg.Button('Update recipe diff', key='-UPDATE-', disabled=True, enable_events=True)],
+        [sg.Checkbox('Remove components that are not in mash', key='-REMOVE_COMPONENTS-', enable_events=True),
+         sg.Checkbox('Remove FOD\'S where components are removed', key='-REMOVE_FODS-', enable_events=True),
+         sg.Checkbox('Add components that\'s are not in recipe', key='-ADD_COMPONENTS-', enable_events=True, disabled=True),
+         ]
+
 
     ]
 
@@ -68,6 +73,7 @@ class CompareRecipeMashView:
         compare = compareRecipeMash.CompareRecipeMashService()
         update_recipe = updateRecipe.UpdateRecipeComponentsFromMash()
         table = []
+        actions = {}
         if self.window_hidden:
             self.window.un_hide()
         while True:
@@ -83,7 +89,10 @@ class CompareRecipeMashView:
                 break
 
             elif event == '-UPDATE-':
-                updateRecipe.UpdateRecipeComponentsFromMash().main(table, values['-FILE1-'])
+                actions['REMOVE_COMPONENTS'] = values['-REMOVE_COMPONENTS-']
+                actions['REMOVE_FODS'] = values['-REMOVE_FODS-']
+                actions['ADD_COMPONENTS'] = values['-ADD_COMPONENTS-']
+                updateRecipe.UpdateRecipeComponentsFromMash().main(table, values['-FILE1-'], actions)
                 #table = compare.main(values['-FILE1-'], values['-FILE2-'])
                 #self.window['-TABLE-'].update(values=table, visible=True)
             elif event == '-EXCEL-':
