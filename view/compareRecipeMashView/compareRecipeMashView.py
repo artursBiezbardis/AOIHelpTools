@@ -96,16 +96,16 @@ class CompareRecipeMashView:
                 #table = compare.main(values['-FILE1-'], values['-FILE2-'])
                 #self.window['-TABLE-'].update(values=table, visible=True)
             elif event == '-EXCEL-':
-                exportExcel.ExportToExcelService().create_excel(table, self.table_headings)
+                exportExcel.ExportToExcelService().create_excel(table[0], self.table_headings)
             elif event == '-COMPARE-':
                 table = compare.main(values['-FILE1-'], values['-FILE2-'])
-                self.window['-TABLE-'].update(values=table, visible=True)
+                self.window['-TABLE-'].update(values=table[0], visible=True)
                 self.window['-EXCEL-'].update(disabled=False)
-                if update_recipe.validate_table_for_update(table):
+                if update_recipe.validate_table_for_update(table[0]):
                     self.window['-UPDATE-'].update(disabled=False)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
             elif event == '-EXCEL-':
-                exportExcel.ExportToExcelService().create_excel(table, self.table_headings)
+                exportExcel.ExportToExcelService().create_excel(table[0], self.table_headings)
 
 

@@ -3,8 +3,8 @@ import math
 
 
 class ReferenceComponentLocationUtilities:
-    ALLOWANCE_OFFSET_X = 0.200
-    ALLOWANCE_OFFSET_Y = 0.200
+    ALLOWANCE_OFFSET_X = 0.4
+    ALLOWANCE_OFFSET_Y = 0.4
     COLLECT_DIFF_LIMIT = 100
     MASH_BOARD_ANGLES_SEARCH_LIST = [0, 90, 180, 270]
     RESULTS_CONFIDENCE_THRESHOLD = 0.9
@@ -32,17 +32,17 @@ class ReferenceComponentLocationUtilities:
         for angle in self.MASH_BOARD_ANGLES_SEARCH_LIST:
             angle_radians = math.radians(angle)
             count = 1
-            for component_name, data in recipe_data.items():
-                if component_name in recipe_data:
-                    x_reducer = data['relative_x'] * math.cos(angle_radians) - data['relative_y'] * math.sin(angle_radians)
-                    y_reducer = data['relative_x'] * math.sin(angle_radians) + data['relative_y'] * math.cos(angle_radians)
-                    result_x = mash_data[component_name]['relative_x'] - x_reducer
-                    result_y = mash_data[component_name]['relative_y'] - y_reducer
+            for data in recipe_data['data']['Board']['Children']['a:Element']:
+                if data['a:Name'] in mash_data['mash_data']:
+                    x_reducer = float(data['RelativeLocation']['a:X']) * math.cos(angle_radians) - float(data['RelativeLocation']['a:Y']) * math.sin(angle_radians)
+                    y_reducer = float(data['RelativeLocation']['a:X']) * math.sin(angle_radians) + float(data['RelativeLocation']['a:Y']) * math.cos(angle_radians)
+                    result_x = float(mash_data['mash_data'][data['a:Name']]['x']) - x_reducer
+                    result_y = float(mash_data['mash_data'][data['a:Name']]['y']) - y_reducer
                     results_x.append(result_x)
                     results_y.append(result_y)
                     if count >= self.COLLECT_DIFF_LIMIT:
                         break
-                    count = +1
+                    count = count+1
 
             x_median = (sorted(results_x))[(len(results_x)) // 2]
             y_median = (sorted(results_y))[(len(results_y)) // 2]
@@ -61,7 +61,7 @@ class ReferenceComponentLocationUtilities:
         result = False
         for value in value_list:
             if range_value - offset <= value <= range_value + offset:
-                count = +1
+                count = count + 1
         if count/all_val_count >= threshold:
             result = True
         return result

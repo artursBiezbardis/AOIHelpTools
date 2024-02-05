@@ -1,11 +1,14 @@
 import utilities.gzipStreamUtilities as streamGzip
 import app.models.areaLocationModel as fodLocationModel
+import utilities.referenceComponentLocationUtilities as refComp
+
 
 class UpdateRecipeBoardComponentsFromMashRepository:
 
-    def update_board_components(self, gzip_stream, update_dictionary, actions):
+    def update_board_components(self, gzip_stream, update_dictionary, mash_data, actions):
         data = {'data': streamGzip.GzipStreamUtilities().parse_gzip_stream(gzip_stream)}
         updated_data = self.update_existing_components(data, update_dictionary)
+        angle = refComp.ReferenceComponentLocationUtilities().search_mash_angle_against_recipe(mash_data, data)
         if actions['REMOVE_COMPONENTS']:
             updated_data = self.remove_components(updated_data, update_dictionary)
         if actions['REMOVE_FODS']:

@@ -117,12 +117,12 @@ class CompareRecipeMashService:
             for part, value in mash.items():
                 if isinstance(value[1], float) is False and isinstance(value[6], float) is False and side in value[6].lower() and not isinstance(value[8], float) and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
                     board_side_data[part] = {'component': value[0], 'part': value[1].strip(), 'Type': value[8],
-                                             'mount': value[7]}
+                                             'mount': value[7], 'x': value[3], 'y': value[4], 'rotation': value[5]}
         else:
             for part, value in mash.items():
                 if isinstance(value[1], float) is False and not isinstance(value[8], float) and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
                     board_side_data[part] = {'component': value[0], 'part': value[1].strip(), 'Type': value[8],
-                                             'mount': value[7]}
+                                             'mount': value[7], 'x': value[3], 'y': value[4], 'rotation': value[5]}
 
         return board_side_data
 
@@ -136,7 +136,8 @@ class CompareRecipeMashService:
     @staticmethod
     def compare_recipe_to_mash(recipe_path: str, mash_data) -> list:
         table = []
-        mash_components = mash_data
+        recipe_data = {}
+        mash_components = mash_data.copy()
         file = recipe_path + '/tmp/0.board'
         with open(file, 'rb') as f:
             gzip_stream = io.BytesIO(f.read())
@@ -148,6 +149,11 @@ class CompareRecipeMashService:
                     component_name = str(element['a:Name']).strip()
                     part_name = str(element['PartNumber']).strip()
                     if component_name in mash_components:
+                        recipe_data[component_name] = {'part_number': part_name,
+                                                       'x': float(element['RelativeLocation']['a:X']),
+                                                       'y': float(element['RelativeLocation']['a:Y']),
+                                                       'rotation': int(element['RelativeRotation']),
+                                                       }
                         if mash_components[component_name]['part'].lower() not in part_name.lower():
                             table.append([component_name, part_name, mash_components[component_name]['part'],
                                           mash_components[component_name]['mount'],
@@ -161,4 +167,4 @@ class CompareRecipeMashService:
                 if not table:
                     table.append(['All components validated!!', 'All components validated!!', 'All components validated!!'])
         shutil.rmtree(recipe_path + '/tmp/')
-        return table
+        return [table, {'mash_data': mash_data, 'recipe_data': recipe_data}]

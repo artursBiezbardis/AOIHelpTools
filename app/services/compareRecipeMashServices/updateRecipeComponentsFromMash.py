@@ -13,8 +13,8 @@ class UpdateRecipeComponentsFromMash:
         recipe_process = recipeProcess.RecipeProcessUtilities()
         helpers = helper.Helpers()
         recipe_gzip_files = recipe_process.prepare_tmp_recipe_data(recipe_path)
-        update_dictionary = self.get_components_for_update(table)
-        self.update_recipe_boards(recipe_gzip_files, update_dictionary, actions)
+        update_dictionary = self.get_components_for_update(table[0])
+        self.update_recipe_boards(recipe_gzip_files, update_dictionary, table[1], actions)
         parts_list = self.get_part_list(update_dictionary)
         updatePanel.SetUpdatedPartsToSharedRepository().main(parts_list, recipe_gzip_files['gzip_extract_path']+'/Panel')
         backup_dir = os.path.dirname(recipe_path)+'/backupRecipes'
@@ -43,13 +43,13 @@ class UpdateRecipeComponentsFromMash:
         return components_to_update
 
     @staticmethod
-    def update_recipe_boards(recipe_gzip_files, update_dictionary, actions):
+    def update_recipe_boards(recipe_gzip_files, update_dictionary, mash_data, actions):
         boards_list_gzip = recipe_gzip_files['gzip_list']
         boards_list_gzip.remove('Panel')
         for board_file in boards_list_gzip:
             board_path = recipe_gzip_files['gzip_extract_path']+'/'+board_file
             updateBoard.UpdateRecipeBoardComponentsFromMashRepository()\
-                .update_board_components(board_path, update_dictionary, actions)
+                .update_board_components(board_path, update_dictionary, mash_data, actions)
 
     def set_parts_to_shared(self, update_dictionary):
         part_list = self.get_part_list(update_dictionary)
