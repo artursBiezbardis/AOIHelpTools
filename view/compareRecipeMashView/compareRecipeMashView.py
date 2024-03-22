@@ -53,7 +53,7 @@ class CompareRecipeMashView:
         [sg.Button('Update recipe diff', key='-UPDATE-', disabled=True, enable_events=True)],
         [sg.Checkbox('Remove components that are not in mash', key='-REMOVE_COMPONENTS-', enable_events=True),
          sg.Checkbox('Remove FOD\'S where components are removed', key='-REMOVE_FODS-', enable_events=True),
-         sg.Checkbox('Add components that\'s are not in recipe', key='-ADD_COMPONENTS-', enable_events=True, disabled=True),
+         sg.Checkbox('Add components that\'s are not in recipe', key='-ADD_COMPONENTS-', enable_events=True),
          ]
 
 

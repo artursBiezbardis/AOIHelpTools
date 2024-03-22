@@ -152,7 +152,7 @@ class CompareRecipeMashService:
                         recipe_data[component_name] = {'part_number': part_name,
                                                        'x': float(element['RelativeLocation']['a:X']),
                                                        'y': float(element['RelativeLocation']['a:Y']),
-                                                       'rotation': int(element['RelativeRotation']),
+                                                       'rotation': float(element['RelativeRotation']),
                                                        }
                         if mash_components[component_name]['part'].lower() not in part_name.lower():
                             table.append([component_name, part_name, mash_components[component_name]['part'],

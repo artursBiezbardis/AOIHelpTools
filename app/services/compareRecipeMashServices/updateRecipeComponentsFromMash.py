@@ -4,6 +4,7 @@ import app.repositories.compareRecipeMashRepository.setUpdatedPartsToSharedRepos
 import utilities.backUpUtilities as recipeBackUp
 import os
 import helpers.helpers as helper
+import shutil
 
 
 class UpdateRecipeComponentsFromMash:
@@ -21,6 +22,7 @@ class UpdateRecipeComponentsFromMash:
         recipeBackUp.BackUpUtilities.create_backup_for_file(backup_dir, recipe_path, 'recipe_before_update_from_mash_')
         list_of_gzip_files = helpers.get_files_in_folder(recipe_gzip_files['gzip_extract_path'])
         recipe_process.create_recipe_from_tmp(recipe_path, list_of_gzip_files)
+        shutil.rmtree(os.path.dirname(recipe_path) + '/tmp/')
 
     @staticmethod
     def validate_table_for_update(table=[]):
@@ -37,19 +39,23 @@ class UpdateRecipeComponentsFromMash:
         components_to_update: object = {}
         for item in table:
             if item[1] != 'empty' and item[2] != 'empty':
-                components_to_update[item[0]] = item[2]
+                components_to_update[item[0]] = {'part': item[2], 'action': 'update'}
             elif item[1] != 'empty' and item[2] == 'empty':
-                components_to_update[item[0]] = 'remove'
+                components_to_update[item[0]] = {'part': item[2], 'action': 'remove'}
+            elif item[1] == 'empty' and item[2] != 'empty':
+                components_to_update[item[0]] = {'part': item[2], 'action': 'add'}
+
         return components_to_update
 
     @staticmethod
     def update_recipe_boards(recipe_gzip_files, update_dictionary, mash_data, actions):
+        data_to_add_components = {}
         boards_list_gzip = recipe_gzip_files['gzip_list']
         boards_list_gzip.remove('Panel')
         for board_file in boards_list_gzip:
             board_path = recipe_gzip_files['gzip_extract_path']+'/'+board_file
-            updateBoard.UpdateRecipeBoardComponentsFromMashRepository()\
-                .update_board_components(board_path, update_dictionary, mash_data, actions)
+            data_to_add_components = updateBoard.UpdateRecipeBoardComponentsFromMashRepository()\
+                .update_board_components(board_path, update_dictionary, mash_data, actions, data_to_add_components)
 
     def set_parts_to_shared(self, update_dictionary):
         part_list = self.get_part_list(update_dictionary)
@@ -61,6 +67,6 @@ class UpdateRecipeComponentsFromMash:
         part_list = []
         for key, val in update_dictionary.items():
             if val not in part_list:
-                part_list.append(val)
+                part_list.append(val['part'])
 
         return part_list
