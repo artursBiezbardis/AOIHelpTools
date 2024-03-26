@@ -4,7 +4,8 @@ import utilities.referenceComponentLocationUtilities as refComp
 import math
 import utilities.fileAndFolderPathUtilities as pathUtils
 import helpers.helpers as helper
-
+import app.models.recipeModels.xmlToDictBoardModel as boardModel
+import app.models.recipeModels.xmlToDictComponentModel as componentModel
 
 class UpdateRecipeBoardComponentsFromMashRepository:
 
@@ -23,26 +24,22 @@ class UpdateRecipeBoardComponentsFromMashRepository:
             updated_data = self.remove_fods(updated_data['data'])
         if actions['ADD_COMPONENTS']:
             if first_board == board_file:
-                angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().search_mash_angle_against_recipe(
+                angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().validate_mash_angle_against_recipe(
                     mash_data, data)
                 if not angle_and_relative_offset['valid']:
-                    angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().search_mash_angle_against_recipe(
+                    angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().validate_mash_angle_against_recipe(
                         mash_data, data, x_mirror=-1)
                 if not angle_and_relative_offset['valid']:
-                    angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().search_mash_angle_against_recipe(
+                    angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().validate_mash_angle_against_recipe(
                         mash_data, data, y_mirror=-1)
 
                 updated_data = self.get_reference_data(updated_data['data'], update_dictionary, angle_and_relative_offset, mash_data)
             else:
                 updated_data['data_other_boards'] = data_add_components
 
-            # if helper.Helpers().get_filename_from_path(gzip_stream_path) == first_board and updated_data['parts_to_add']:
-            #     self.update_panel_to_add_components(updated_data['parts_to_add'], gzip_stream_path)
-
             updated_data = self.add_components(updated_data)
 
-        updated_gzip_stream = streamGzip.GzipStreamUtilities().update_gzip_stream(updated_data['data']['data'],
-                                                                                  gzip_stream_path)
+        streamGzip.GzipStreamUtilities().update_gzip_stream(updated_data['data']['data'], gzip_stream_path)
 
         return updated_data['data_other_boards']
 
@@ -106,23 +103,16 @@ class UpdateRecipeBoardComponentsFromMashRepository:
         return {'data': data}
 
     def get_reference_data(self, data, update_data_to_add, coordinate_offsets, mash_data):
-        board = data['data']['Board']
-        elements = data['data']['Board']['Children']['a:Element']
-        board_nr = board['Name']['#text']
-        board_angle = 0
-        board_position = [float(board['Position']['X']), float(board['Position']['Y']), board_angle]
-        board_height = float(board['BoardHeight'])
-        board_width = float(board['BoardWidth'])
-
-        reference_board_position = self.calculate_reference_board_rotate_by_center(board_angle, board_height, board_width, board_position)
-
+        action = 'add'
+        board = boardModel.XmlToDictBoardModel(data['data'])
+        elements = board.get_board_components()
         ids = self.get_part_ids(elements)
         location_id = int(ids[0]) + 2
         location_link_id = int(ids[1])
         parts_to_add = []
         data_other_boards = {}
         for part_to_add in update_data_to_add:
-            if update_data_to_add[part_to_add]['action'] == 'add':
+            if update_data_to_add[part_to_add]['action'] == action:
                 if update_data_to_add[part_to_add]['part'] not in parts_to_add:
                     parts_to_add.append(update_data_to_add[part_to_add]['part'])
 
@@ -139,8 +129,6 @@ class UpdateRecipeBoardComponentsFromMashRepository:
                 part_name = update_data_to_add[part_to_add]['part']
                 x_relative = -(float(coordinate_calculation[0]) + float(coordinate_offsets['y_median']))*coordinate_offsets['x_mirror']
                 y_relative = -(float(coordinate_calculation[1]) - float(coordinate_offsets['x_median']))*coordinate_offsets['y_mirror']
-
-                angle_offset = int(coordinate_calculation[2])
                 part_angle_offset = int(mash_data['mash_data'][part_to_add]['rotation'])-coordinate_offsets['result_angle']+360
                 part_angle = part_angle_offset if part_angle_offset < 360 else part_angle_offset-360
 
@@ -165,53 +153,6 @@ class UpdateRecipeBoardComponentsFromMashRepository:
 
         return {'data': data, 'parts_to_add': parts_to_add, 'data_other_boards': data_other_boards}
 
-    def update_set_temp_template_for_existing_parts(self, data, parts_to_add, board_nr, board_location):
-
-        elements = data['data']['Board']['Children']['a:Element']
-        index = 0
-        for element in elements:
-            if element['a:TemplateName'] in parts_to_add:
-                elements[index] = self.generate_element(board_nr,
-                                                        board_location,
-                                                        element['a:Name'],
-                                                        element['a:TemplateName'],
-                                                        element['RelativeLocation']['a:X'],
-                                                        element['RelativeLocation']['a:Y'],
-                                                        element['RelativeRotation'],
-                                                        element['a:ID'],
-                                                        element['a:LocationLinkID'])
-
-            index += 1
-
-        return data
-
-    def update_panel_to_add_components(self, parts_to_add, board_path):
-
-        package = 'generic_template'
-        result = True
-        panel_path = pathUtils.FileAndFolderPathUtilities().get_folder_path_from_file_path(board_path, 0) + '/Panel'
-        data = streamGzip.GzipStreamUtilities().parse_gzip_stream(panel_path)
-
-        for element in data['Panel']['PartLibrary']['a:RootTemplates']['a:_templatePropertyDecorators'][
-            'b:KeyValueOfstringTemplatePropertyDecoratorDVHnpzMe']:
-            try:
-                if element['b:Key'] in parts_to_add:
-                    parts_to_add.remove(element['b:Key'])
-            except TypeError as e:
-                print(e)
-
-        if parts_to_add:
-            for part_name in parts_to_add:
-                data['Panel']['PartLibrary']['a:RootTemplates']['a:_templatePropertyDecorators'][
-                    'b:KeyValueOfstringTemplatePropertyDecoratorDVHnpzMe']. \
-                    append(self.xml_template_panel_parts(part_name))
-            data['Panel']['PackageLibrary']['a:RootTemplates']['a:_templatePropertyDecorators'][
-                'b:KeyValueOfstringTemplatePropertyDecoratorDVHnpzMe'].append(self.xml_template_panel_package())
-
-        streamGzip.GzipStreamUtilities().update_gzip_stream(data, panel_path)
-
-        return result
-
     @staticmethod
     def get_part_ids(elements):
         last_element = list(elements)[-1]
@@ -220,18 +161,18 @@ class UpdateRecipeBoardComponentsFromMashRepository:
         return [int(id), int(location_link_id)]
 
     def add_components(self, updated_data):
+        tmp_component_suffix = 'prep_'
+
         new_data = updated_data
-        data = updated_data['data']['data']
-        board = data['Board']
-        elements = data['Board']['Children']['a:Element']
-        board_nr = board['Name']['#text']
-        board_angle = int(board['RotationZ']['#text']) if 'RotationZ' in board else 0
-        board_position = [float(board['Position']['X']), float(board['Position']['Y']), board_angle]
-        board_height = float(board['BoardHeight'])
-        board_width = float(board['BoardWidth'])
-
-
+        board = boardModel.XmlToDictBoardModel(updated_data['data']['data'])
+        elements = board.get_board_components()
+        board_nr = board.get_board_nr()
+        board_angle = board.get_board_angle()
+        board_position = [board.get_board_position_x(), board.get_board_position_y(), board_angle]
+        board_height = board.get_board_height()
+        board_width = board.get_board_width()
         for component_name, new_comp_data in updated_data['data_other_boards'].items():
+            component_name = tmp_component_suffix + component_name
 
             x_relative = new_comp_data['x_relative'] if new_comp_data['x_mirror'] == 1 else self.calculate_relative_mirror(new_comp_data['x_relative'], board_width)
 
@@ -242,9 +183,6 @@ class UpdateRecipeBoardComponentsFromMashRepository:
                 y_relative,
                 board_angle,
                 0)
-
-
-
 
             new_element = self.generate_element(board_nr,
                                                 board_position,
@@ -258,7 +196,9 @@ class UpdateRecipeBoardComponentsFromMashRepository:
                                                 absolute_location)
             elements.append(new_element)
 
-        new_data['data']['data'] = data
+        board.set_board_components(elements)
+        new_data['data']['data'] = board.data
+
         return new_data
 
 
@@ -271,12 +211,8 @@ class UpdateRecipeBoardComponentsFromMashRepository:
     @staticmethod
     def calculate_absolut_location(relative_x, relative_y, board_angle_degrees, x_mirror, y_mirror):
         angle_rad = math.radians(board_angle_degrees)
-
         absolute_x = x_mirror * (relative_x * math.cos(angle_rad) - relative_y * math.sin(angle_rad))
         absolute_y = y_mirror * (relative_x * math.sin(angle_rad) + relative_y * math.cos(angle_rad))
-
-        # absolute_x += translation_x
-        # absolute_y += translation_y
 
         return [absolute_x, absolute_y]
 
@@ -288,7 +224,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
         elif board_angle == 90:
             calculated_position = [board_position[0]-board_height, board_position[1]]
         elif board_angle == 270:
-            calculated_position= [board_position[0], board_position[1]-board_width]
+            calculated_position = [board_position[0], board_position[1]-board_width]
         return calculated_position
 
     @staticmethod

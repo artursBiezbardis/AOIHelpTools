@@ -9,6 +9,19 @@ class ReferenceComponentLocationUtilities:
     MASH_BOARD_ANGLES_SEARCH_LIST = [0, 90, 180, 270]
     RESULTS_CONFIDENCE_THRESHOLD = 0.9
 
+    def search_mash_angle_against_recipe(self, mash_data, board_data):
+
+        angle_and_relative_offset = self.validate_mash_angle_against_recipe(
+            mash_data, board_data)
+        if not angle_and_relative_offset['valid']:
+            angle_and_relative_offset = self.validate_mash_angle_against_recipe(
+                mash_data, board_data, x_mirror=-1)
+        if not angle_and_relative_offset['valid']:
+            angle_and_relative_offset = self.validate_mash_angle_against_recipe(
+                mash_data, board_data, y_mirror=-1)
+
+
+
     def calculate_statistical_component_angle_diff(self, mash_data: dict, recipe_data: dict):
         count = 0
         angle_differences = []
@@ -25,7 +38,7 @@ class ReferenceComponentLocationUtilities:
 
         return highest_count_diff_angle
 
-    def search_mash_angle_against_recipe(self, mash_data: dict, recipe_data: dict, x_mirror=1, y_mirror=1) -> dict:
+    def validate_mash_angle_against_recipe(self, mash_data: dict, recipe_data: dict, x_mirror=1, y_mirror=1) -> dict:
         result_angle = 360
 
         for angle in self.MASH_BOARD_ANGLES_SEARCH_LIST:
