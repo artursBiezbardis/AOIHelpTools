@@ -3,31 +3,50 @@ import app.models.recipeModels.xmlToDictBoardModel as boardModel
 
 class XmlToDictComponentModel:
 
+    location_id = 1
+    location_link_id = 2
+
     def __init__(self,
-                 board_model: boardModel.XmlToDictBoardModel,
+                 board_model: boardModel.XmlToDictBoardModel={},
                  new_component_data={},
                  component_data={}):
-        self.new_component = new_component_data
-        self.component = component_data if component_data else self.generate_component()
-        
+        self.board = board_model
+        self.component_data = component_data
+        self.new_component_data = new_component_data
+        self.get_component()
+        self.component = self.get_component()
         self.get_component_name()
         self.get_part_name()
-        self.generate_component()
-        self.board = board_model
 
     def get_component(self):
 
-        return self.component
+        return self.component_data if self.component_data else self.generate_component(self.new_component_data)
 
     def get_component_name(self):
 
-        return self.get_component()['a:Name']
+        return str(self.component['a:Name']).strip()
 
     def get_part_name(self):
 
-        return self.get_component()['a:TemplateName']
+        return str(self.component['a:TemplateName']).strip()
+
+    def get_relative_x(self):
+
+        return float(self.component['RelativeLocation']['a:X'])
+
+    def get_relative_y(self):
+
+        return float(self.component['RelativeLocation']['a:Y'])
+
+    def get_relative_angle(self):
+
+        return float(self.component['RelativeRotation'])
+
+    def set_component(self, new_component_data):
+        self.component = self.generate_component(new_component_data)
 
     def set_component_name(self, component_name):
+
         self.component['a:Name'] = component_name
 
     def set_part_name(self, part_name):
@@ -35,15 +54,13 @@ class XmlToDictComponentModel:
         self.component['a:TemplateName'] = part_name
         self.component['Texts']['a:Text']['a:TemplateName'] = 'Part\\' + part_name + '\\Text_T1'
 
-
-
-    def generate_component(self,
-                         x_relative: float,
-                         y_relative: float,
-                         angle: int,
-                         location_id: int,
-                         location_link_id: int,
-                         absolute_location=[]):
+    def generate_component(self, new_component_data):
+        absolute_location = new_component_data['absolute location']
+        angle = new_component_data['angle']
+        location_id = new_component_data['location id']
+        location_link_id = new_component_data['location link id']
+        x_relative = new_component_data['x_relative']
+        y_relative = new_component_data['y_relative']
 
         component_name = self.get_component_name()
         part_name = self.get_part_name()
@@ -51,6 +68,7 @@ class XmlToDictComponentModel:
         board_location_x = self.board.get_board_position_x()
         board_location_y = self.board.get_board_position_y()
         board_angle = self.board.get_board_angle()
+
         absolute_x = float(absolute_location[0]) + board_location_x
         absolute_y = float(absolute_location[1]) + board_location_y
         absolute_angle = angle + board_angle if angle + board_angle < 360 else angle + board_angle - 360

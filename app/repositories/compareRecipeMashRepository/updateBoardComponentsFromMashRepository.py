@@ -6,10 +6,17 @@ import utilities.fileAndFolderPathUtilities as pathUtils
 import helpers.helpers as helper
 import app.models.recipeModels.xmlToDictBoardModel as boardModel
 import app.models.recipeModels.xmlToDictComponentModel as componentModel
+import app.models.mashModels.mashComponentListModel as mashListModel
+
 
 class UpdateRecipeBoardComponentsFromMashRepository:
 
-    def update_board_components(self, gzip_stream_path, update_dictionary, mash_data, actions, data_add_components):
+    def __init__(self, mash_data):
+
+        self.mash_data = mash_data
+
+    def update_board_components(self, gzip_stream_path, update_dictionary, actions, data_add_components):
+        ref_components = refComp.ReferenceComponentLocationUtilities()
         tmp_folder_path = pathUtils.FileAndFolderPathUtilities().get_folder_path_from_file_path(
             gzip_stream_path, 0)
         gzip_files = helper.Helpers().get_files_in_folder(tmp_folder_path)
@@ -24,16 +31,12 @@ class UpdateRecipeBoardComponentsFromMashRepository:
             updated_data = self.remove_fods(updated_data['data'])
         if actions['ADD_COMPONENTS']:
             if first_board == board_file:
-                angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().validate_mash_angle_against_recipe(
-                    mash_data, data)
-                if not angle_and_relative_offset['valid']:
-                    angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().validate_mash_angle_against_recipe(
-                        mash_data, data, x_mirror=-1)
-                if not angle_and_relative_offset['valid']:
-                    angle_and_relative_offset = refComp.ReferenceComponentLocationUtilities().validate_mash_angle_against_recipe(
-                        mash_data, data, y_mirror=-1)
+                angle_and_relative_offset = ref_components.search_mash_angle_against_recipe(self.mash_data, data)
 
-                updated_data = self.get_reference_data(updated_data['data'], update_dictionary, angle_and_relative_offset, mash_data)
+                updated_data = ref_components.calculate_reference_board_coordinates(updated_data['data'],
+                                                                                    update_dictionary,
+                                                                                    angle_and_relative_offset,
+                                                                                    self.mash_data)
             else:
                 updated_data['data_other_boards'] = data_add_components
 
@@ -41,7 +44,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
 
         streamGzip.GzipStreamUtilities().update_gzip_stream(updated_data['data']['data'], gzip_stream_path)
 
-        return updated_data['data_other_boards']
+        return updated_data['data_other_boards'] if 'data_other_boards' in updated_data else []
 
     @staticmethod
     def update_existing_components(data, update_data):
@@ -129,6 +132,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
                 part_name = update_data_to_add[part_to_add]['part']
                 x_relative = -(float(coordinate_calculation[0]) + float(coordinate_offsets['y_median']))*coordinate_offsets['x_mirror']
                 y_relative = -(float(coordinate_calculation[1]) - float(coordinate_offsets['x_median']))*coordinate_offsets['y_mirror']
+
                 part_angle_offset = int(mash_data['mash_data'][part_to_add]['rotation'])-coordinate_offsets['result_angle']+360
                 part_angle = part_angle_offset if part_angle_offset < 360 else part_angle_offset-360
 
@@ -161,7 +165,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
         return [int(id), int(location_link_id)]
 
     def add_components(self, updated_data):
-        tmp_component_suffix = 'prep_'
+        tmp_component_suffix = ''
 
         new_data = updated_data
         board = boardModel.XmlToDictBoardModel(updated_data['data']['data'])
@@ -182,7 +186,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
                 x_relative,
                 y_relative,
                 board_angle,
-                0)
+                new_comp_data['angle'])
 
             new_element = self.generate_element(board_nr,
                                                 board_position,
@@ -276,7 +280,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
                     '@xmlns': 'http://schemas.datacontract.org/2004/07/CO.Phoenix.Framework.Common.Logging'},
                     'a:X': float(x_relative),
                     'a:Y': float(y_relative)},
-                'a:RotationZ': absolute_angle,
+                # 'a:RotationZ': absolute_angle,
                 'a:Task': {'LogMessage': {
                     '@xmlns': 'http://schemas.datacontract.org/2004/07/CO.Phoenix.Framework.Common.Logging',
                     '#text': 'Panel.' + board_nr + '.' + component_name + '.Body.Task'}, 'LogRecipeDataName': {

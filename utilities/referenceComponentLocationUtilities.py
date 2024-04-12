@@ -1,5 +1,6 @@
 from collections import Counter
 import math
+import app.models.recipeModels.xmlToDictBoardModel as boardModel
 
 
 class ReferenceComponentLocationUtilities:
@@ -20,7 +21,68 @@ class ReferenceComponentLocationUtilities:
             angle_and_relative_offset = self.validate_mash_angle_against_recipe(
                 mash_data, board_data, y_mirror=-1)
 
+        return angle_and_relative_offset
 
+    def calculate_reference_board_coordinates(self, board_data, update_data_to_add, coordinate_offsets, mash_data):
+        action = 'add'
+        board = boardModel.XmlToDictBoardModel(board_data['data'])
+        elements = board.get_board_components()
+        ids = self.get_part_ids(elements)
+        location_id = int(ids[0]) + 2
+        location_link_id = int(ids[1])
+        parts_to_add = []
+        data_other_boards = {}
+        for part_to_add in update_data_to_add:
+            if update_data_to_add[part_to_add]['action'] == action:
+                if update_data_to_add[part_to_add]['part'] not in parts_to_add:
+                    parts_to_add.append(update_data_to_add[part_to_add]['part'])
+                #     create mash part model
+                coordinate_calculation = self.calculate_coordinates(
+                    float(mash_data['mash_data'][part_to_add]['x']),
+                    float(mash_data['mash_data'][part_to_add]['y']),
+                    int(coordinate_offsets['result_angle']),
+                    float(mash_data['mash_data'][part_to_add]['rotation']),
+                    coordinate_offsets['x_mirror'],
+                    coordinate_offsets['y_mirror']
+                )
+
+                component_name = part_to_add
+                part_name = update_data_to_add[part_to_add]['part']
+                x_relative = -(float(coordinate_calculation[0]) + float(coordinate_offsets['y_median'])) * \
+                             coordinate_offsets['x_mirror']
+                y_relative = -(float(coordinate_calculation[1]) - float(coordinate_offsets['x_median'])) * \
+                             coordinate_offsets['y_mirror']
+                part_angle_offset = int(mash_data['mash_data'][part_to_add]['rotation']) - coordinate_offsets[
+                    'result_angle'] + 360
+                part_angle = part_angle_offset if part_angle_offset < 360 else part_angle_offset - 360
+
+                try:
+
+                    location_id = location_id + 1
+                    location_link_id = location_link_id + 1
+                    data_other_boards[component_name] = {'part_name': part_name,
+                                                         'x_relative': x_relative,
+                                                         'y_relative': y_relative,
+                                                         'angle': part_angle,
+                                                         'location_id': location_id,
+                                                         'location_link_id': location_link_id,
+                                                         'x_mirror': coordinate_offsets['x_mirror'],
+                                                         'y_mirror': coordinate_offsets['y_mirror'],
+
+                                                         }
+                    location_id = location_id + 1
+
+                except TypeError as e:
+                    print(e)
+
+        return {'data': board_data, 'parts_to_add': parts_to_add, 'data_other_boards': data_other_boards}
+
+    @staticmethod
+    def get_part_ids(elements):
+        last_element = list(elements)[-1]
+        id = last_element['a:ID']
+        location_link_id = last_element['a:LocationLinkID']
+        return [int(id), int(location_link_id)]
 
     def calculate_statistical_component_angle_diff(self, mash_data: dict, recipe_data: dict):
         count = 0
@@ -42,6 +104,7 @@ class ReferenceComponentLocationUtilities:
         result_angle = 360
 
         for angle in self.MASH_BOARD_ANGLES_SEARCH_LIST:
+            reference_mash_data = {}
             angle_radians = math.radians(angle)
             count = 1
             results_x = []
@@ -50,6 +113,8 @@ class ReferenceComponentLocationUtilities:
                 if data['a:Name'] in mash_data['mash_data']:
                     x_reducer = x_mirror * float(data['RelativeLocation']['a:X']) * math.cos(angle_radians) - y_mirror * float(data['RelativeLocation']['a:Y']) * math.sin(angle_radians)
                     y_reducer = x_mirror * float(data['RelativeLocation']['a:X']) * math.sin(angle_radians) + y_mirror * float(data['RelativeLocation']['a:Y']) * math.cos(angle_radians)
+                    reference_mash_data[data['a:Name']] = mash_data
+
                     result_x = float(mash_data['mash_data'][data['a:Name']]['x']) - x_reducer
                     result_y = float(mash_data['mash_data'][data['a:Name']]['y']) - y_reducer
                     results_x.append(result_x)
@@ -65,7 +130,7 @@ class ReferenceComponentLocationUtilities:
             if validate_y and validate_x:
                 result_angle = angle
 
-                return {'result_angle': result_angle, 'x_median': x_median, 'y_median': y_median, 'x_mirror': x_mirror, 'y_mirror': y_mirror, 'valid': True}
+                return {'result_angle': result_angle, 'x_median': x_median, 'y_median': y_median, 'x_mirror': x_mirror, 'y_mirror': y_mirror, 'valid': True, }
 
         return {'result_angle': result_angle, 'x_median': 0.0, 'y_median': 0.0, 'x_mirror': x_mirror, 'y_mirror': y_mirror, 'valid': False}
 

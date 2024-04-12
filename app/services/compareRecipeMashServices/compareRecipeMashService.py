@@ -1,27 +1,31 @@
 import utilities.recipeProcessUtilities as prepareRecipe
-# import app.services.groupComponentsByLocationService.goupComponentsByLocationService as prepareRecipe
 import app.services.mashFileServices.mashFileService as mashService
 import re
 import helpers.helpers as helper
 import shutil
-import xmltodict
-import io
-import gzip
+import app.models.recipeModels.xmlToDictBoardModel as boardModel
+import app.models.recipeModels.xmlToDictComponentModel as recipeComponentModel
+import app.models.mashModels.mashComponentListModel as mashList
+import utilities.gzipStreamUtilities as gzStream
+
 
 
 class CompareRecipeMashService:
 
     def main(self, recipe_path, mash_path):
-
         prepare_recipe = prepareRecipe.RecipeProcessUtilities()
-
         recipe_folder_path = self.parse_recipe_folder_path(recipe_path)
+        recipe_data_path = recipe_folder_path + '/tmp/0.board'
         mash_service = mashService.MashFileService()
         board_side = self.pcb_side(recipe_path)
         mash_data = mash_service.extract_mash_data(mash_path)
+        mash_model = mashList.MashComponentListModel(mash_data[2])
+        mesh_mount_components = mash_model.get_components([board_side, 'mount', 'smt'], [f'fid_{board_side}'])
         board_side_mash_data = self.get_board_side_data(mash_data, board_side)
         prepare_recipe.prepare_tmp_recipe_data(recipe_path)
-        table = self.compare_recipe_to_mash(recipe_folder_path, board_side_mash_data)
+        recipe_model = boardModel.XmlToDictBoardModel(gzStream.GzipStreamUtilities().parse_gzip_stream(recipe_data_path)).get_board_components()
+        table = self.compare_recipe_to_mash(recipe_model, board_side_mash_data)
+        shutil.rmtree(recipe_folder_path + '/tmp/')
 
         return table
 
@@ -134,37 +138,32 @@ class CompareRecipeMashService:
         return recipe_folder_path
 
     @staticmethod
-    def compare_recipe_to_mash(recipe_path: str, mash_data) -> list:
+    def compare_recipe_to_mash(recipe_data_dict, mash_data) -> list:
         table = []
         recipe_data = {}
         mash_components = mash_data.copy()
-        file = recipe_path + '/tmp/0.board'
-        with open(file, 'rb') as f:
-            gzip_stream = io.BytesIO(f.read())
-            with gzip.GzipFile(fileobj=gzip_stream, mode='rb') as f:
-                gzip_stream = io.BytesIO(f.read())
-                data = xmltodict.parse(gzip_stream)
-                elements = data['Board']['Children']['a:Element']
-                for element in elements:
-                    component_name = str(element['a:Name']).strip()
-                    part_name = str(element['PartNumber']).strip()
-                    if component_name in mash_components:
-                        recipe_data[component_name] = {'part_number': part_name,
-                                                       'x': float(element['RelativeLocation']['a:X']),
-                                                       'y': float(element['RelativeLocation']['a:Y']),
-                                                       'rotation': float(element['RelativeRotation']),
-                                                       }
-                        if mash_components[component_name]['part'].lower() not in part_name.lower():
-                            table.append([component_name, part_name, mash_components[component_name]['part'],
-                                          mash_components[component_name]['mount'],
-                                          mash_components[component_name]['Type']])
-                        del mash_components[component_name]
-                    elif component_name not in mash_components and 'PART' not in part_name and 'Template_FOD' not in part_name:
-                        table.append([component_name, part_name, 'empty', 'empty', 'empty'])
-                if mash_components:
-                    for component, value in mash_components.items():
-                        table.append([component, 'empty', value['part'], value['mount'], value['Type']])
-                if not table:
-                    table.append(['All components validated!!', 'All components validated!!', 'All components validated!!'])
-        shutil.rmtree(recipe_path + '/tmp/')
+        # mash_list = mashList.MashComponentListModel(mash_data).component_dict.copy()
+        for element in recipe_data_dict:
+            component = recipeComponentModel.XmlToDictComponentModel(component_data=element)
+            component_name = component.get_component_name()
+            part_name = component.get_part_name()
+
+            if component_name in mash_components:
+                recipe_data[component_name] = {'part_number': part_name,
+                                               'x': component.get_relative_x(),
+                                               'y': component.get_relative_y(),
+                                               'rotation': component.get_relative_angle(),
+                                               }
+                if mash_components[component_name]['part'].lower() not in part_name.lower():
+                    table.append([component_name, part_name, mash_components[component_name]['part'],
+                                  mash_components[component_name]['mount'],
+                                  mash_components[component_name]['Type']])
+                del mash_components[component_name]
+            elif component_name not in mash_components and 'PART' not in part_name and 'Template_FOD' not in part_name:
+                table.append([component_name, part_name, 'empty', 'empty', 'empty'])
+        if mash_components:
+            for component, value in mash_components.items():
+                table.append([component, 'empty', value['part'], value['mount'], value['Type']])
+        if not table:
+            table.append(['All components validated!!', 'All components validated!!', 'All components validated!!'])
         return [table, {'mash_data': mash_data, 'recipe_data': recipe_data}]

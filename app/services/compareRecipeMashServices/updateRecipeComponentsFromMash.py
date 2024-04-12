@@ -5,6 +5,7 @@ import utilities.backUpUtilities as recipeBackUp
 import os
 import helpers.helpers as helper
 import shutil
+import app.models.mashModels.mashComponentListModel as mashListModel
 
 
 class UpdateRecipeComponentsFromMash:
@@ -49,13 +50,14 @@ class UpdateRecipeComponentsFromMash:
 
     @staticmethod
     def update_recipe_boards(recipe_gzip_files, update_dictionary, mash_data, actions):
+        mash_model = mashListModel.MashComponentListModel(mash_data)
         data_to_add_components = {}
         boards_list_gzip = recipe_gzip_files['gzip_list']
         boards_list_gzip.remove('Panel')
+        update_board = updateBoard.UpdateRecipeBoardComponentsFromMashRepository(mash_data)
         for board_file in boards_list_gzip:
             board_path = recipe_gzip_files['gzip_extract_path']+'/'+board_file
-            data_to_add_components = updateBoard.UpdateRecipeBoardComponentsFromMashRepository()\
-                .update_board_components(board_path, update_dictionary, mash_data, actions, data_to_add_components)
+            data_to_add_components = update_board.update_board_components(board_path, update_dictionary, actions, data_to_add_components)
 
     def set_parts_to_shared(self, update_dictionary):
         part_list = self.get_part_list(update_dictionary)
