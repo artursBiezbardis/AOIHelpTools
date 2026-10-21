@@ -6,9 +6,10 @@ class RecipesListRepository:
     @staticmethod
     def folder_dict(path):
         dirs = {}
-        for name in os.listdir(path):
-            if os.path.isdir(os.path.join(path, name)):
-                dirs[name] = os.path.join(path, name)
+        with os.scandir(path) as entries:
+            for entry in entries:
+                if entry.is_dir():
+                    dirs[entry.name] = entry.path
         return dirs
 
 

@@ -1,6 +1,7 @@
 import app.repositories.recipesListRepository.recipesListRepository as recipesList
 import app.repositories.sqlLiteRepository.sqlLiteRepository as sql
 import app.services.settingsService.settingsService as settings
+from concurrent.futures import ThreadPoolExecutor
 
 
 class RecipesListService:
@@ -8,26 +9,51 @@ class RecipesListService:
     dBSubLocation = '\\TemplateLibrary\\Templates.db'
     table = 'Component'
     setting_name = '-RECIPES_PATH-'
+    _max_lookup_workers = 8
 
     def format_list_for_table(self, entry: str, entry_type: str):
         recipes_folder = settings.SettingsService().get_setting(self.setting_name)
         directories = (recipesList.RecipesListRepository()).folder_dict(recipes_folder)
-        recipes_list = {}
+        if not directories:
+            return {}
+
         if entry_type == 'Component':
-            entry_type = 'TemplateId'
+            column = 'TemplateId'
+            entry = entry.upper()
         elif entry_type == 'Package':
-            entry_type = 'PackageName'
-        recipes_repository = sql.SQLiteRepository()
-        for key, value in directories.items():
-            recipe_path = value
-            template_data_base = recipe_path + self.dBSubLocation
-            if entry_type == 'TemplateId':
-                entry = entry.upper()
-                result = recipes_repository.check_if_entry_exist(self.table, entry_type, entry, template_data_base)
-            else:
-                result = recipes_repository.check_if_entry_exist(self.table, entry_type, entry, template_data_base)
-            package = recipes_repository.get_component_package_name(self.table, entry, template_data_base)
-            if result:
-                recipes_list[key] = {'location': value, 'Package': package[0]}
+            column = 'PackageName'
+        else:
+            column = entry_type
+
+        repository = sql.SQLiteRepository()
+        table = self.table
+        database_suffix = self.dBSubLocation
+
+        def lookup(item):
+            key, recipe_path = item
+            found, package_name = repository.lookup_component_package(
+                table,
+                column,
+                entry,
+                recipe_path + database_suffix,
+            )
+            if not found:
+                return None
+            return key, recipe_path, package_name
+
+        items = list(directories.items())
+        if len(items) == 1:
+            results = map(lookup, items)
+        else:
+            workers = min(self._max_lookup_workers, len(items))
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                results = list(pool.map(lookup, items))
+
+        recipes_list = {}
+        for result in results:
+            if result is None:
+                continue
+            key, recipe_path, package_name = result
+            recipes_list[key] = {'location': recipe_path, 'Package': package_name}
 
         return recipes_list

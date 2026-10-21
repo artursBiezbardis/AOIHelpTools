@@ -4,7 +4,6 @@ import re
 import helpers.helpers as helper
 import shutil
 import xmltodict
-import io
 import gzip
 
 
@@ -112,16 +111,28 @@ class CompareRecipeMashService:
     def get_board_side_data(mash_data, side) -> dict:
         board_side_data = {}
         mash = mash_data[2]
-        if side != 'no_side':
-            for part, value in mash.items():
-                if isinstance(value[1], float) is False and isinstance(value[6], float) is False and side in value[6].lower() and not isinstance(value[8], float) and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
-                    board_side_data[part] = {'component': value[0], 'part': value[1].strip(), 'Type': value[8],
-                                             'mount': value[7]}
-        else:
-            for part, value in mash.items():
-                if isinstance(value[1], float) is False and not isinstance(value[8], float) and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
-                    board_side_data[part] = {'component': value[0], 'part': value[1].strip(), 'Type': value[8],
-                                             'mount': value[7]}
+        filter_by_side = side != 'no_side'
+        for part, value in mash.items():
+            part_name = value[1]
+            if isinstance(part_name, float):
+                continue
+            if filter_by_side:
+                side_value = value[6]
+                if isinstance(side_value, float) or side not in side_value.lower():
+                    continue
+            comp_type = value[8]
+            if isinstance(comp_type, float) or comp_type.lower() == 'tht':
+                continue
+            mount = value[7]
+            mount_lower = mount.lower()
+            if mount_lower == 'no' or mount_lower == 'nm':
+                continue
+            board_side_data[part] = {
+                'component': value[0],
+                'part': part_name.strip(),
+                'Type': comp_type,
+                'mount': mount,
+            }
 
         return board_side_data
 
@@ -135,29 +146,33 @@ class CompareRecipeMashService:
     @staticmethod
     def compare_recipe_to_mash(recipe_path: str, mash_data) -> list:
         table = []
-        mash_components = mash_data
         file = recipe_path + '/tmp/0.board'
-        with open(file, 'rb') as f:
-            gzip_stream = io.BytesIO(f.read())
-            with gzip.GzipFile(fileobj=gzip_stream, mode='rb') as f:
-                gzip_stream = io.BytesIO(f.read())
-                data = xmltodict.parse(gzip_stream)
-                elements = data['Board']['Children']['a:Element']
-                for element in elements:
-                    component_name = str(element['a:Name']).strip()
-                    part_name = str(element['PartNumber']).strip()
-                    if component_name in mash_components:
-                        if mash_components[component_name]['part'].lower() not in part_name.lower():
-                            table.append([component_name, part_name, mash_components[component_name]['part'],
-                                          mash_components[component_name]['mount'],
-                                          mash_components[component_name]['Type']])
-                        del mash_components[component_name]
-                    elif component_name not in mash_components and 'PART' not in part_name and 'Template_FOD' not in part_name:
-                        table.append([component_name, part_name, 'empty', 'empty', 'empty'])
-                if mash_components:
-                    for component, value in mash_components.items():
-                        table.append([component, 'empty', value['part'], value['mount'], value['Type']])
-                if not table:
-                    table.append(['All components validated!!', 'All components validated!!', 'All components validated!!'])
+        with gzip.open(file, 'rb') as board_file:
+            data = xmltodict.parse(board_file)
+        elements = data['Board']['Children']['a:Element']
+        for element in elements:
+            component_name = str(element['a:Name']).strip()
+            part_name = str(element['PartNumber']).strip()
+            mash_component = mash_data.pop(component_name, None)
+            if mash_component is not None:
+                mash_part = mash_component['part']
+                if mash_part.lower() not in part_name.lower():
+                    table.append([
+                        component_name,
+                        part_name,
+                        mash_part,
+                        mash_component['mount'],
+                        mash_component['Type'],
+                    ])
+            elif 'PART' not in part_name and 'Template_FOD' not in part_name:
+                table.append([component_name, part_name, 'empty', 'empty', 'empty'])
+        for component, value in mash_data.items():
+            table.append([component, 'empty', value['part'], value['mount'], value['Type']])
+        if not table:
+            table.append([
+                'All components validated!!',
+                'All components validated!!',
+                'All components validated!!',
+            ])
         shutil.rmtree(recipe_path + '/tmp/')
         return table

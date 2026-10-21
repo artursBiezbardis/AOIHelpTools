@@ -1,4 +1,3 @@
-import io
 import os
 import shutil
 
@@ -43,20 +42,20 @@ class GroupComponentsByLocation:
         recipe_path = view_input['-RECIPE_FOLDER_TO_UPDATE_PATH-']
         list_of_gzip_files = self.prepare_recipe_data(recipe_path)
 
+        recipe_repo = updateRecipe.UpdateRecipeComponentsRepository()
+        suffix = view_input['-SUFFIX-']
         for file in list_of_gzip_files:
             if helpers.has_extension(file, '.board'):
-                with open(recipe_path + '/tmp/' + file, 'rb') as f:
-                    gzip_stream = io.BytesIO(f.read())
+                board_path = recipe_path + '/tmp/' + file
+                with open(board_path, 'rb') as raw_board:
+                    updated_gzip_stream = recipe_repo.update_board_components_in_selected_areas_gzip_stream(
+                        raw_board,
+                        area_locations_collection,
+                        suffix,
+                    )
 
-                recipe_repo = updateRecipe.UpdateRecipeComponentsRepository()
-                updated_gzip_stream = recipe_repo.update_board_components_in_selected_areas_gzip_stream(
-                    gzip_stream,
-                    area_locations_collection,
-                    view_input['-SUFFIX-']
-                )
-
-                with open(recipe_path + '/tmp/' + file, 'wb') as f_updated:
-                    f_updated.write(updated_gzip_stream.read())
+                with open(board_path, 'wb') as updated_board:
+                    updated_board.write(updated_gzip_stream.read())
 
         updated_recipe = recipe_path + '/' + (helpers.get_filename_from_path(recipe_path)). \
             replace('-group', '-grouped.recipe')
