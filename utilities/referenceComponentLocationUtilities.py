@@ -102,6 +102,8 @@ class ReferenceComponentLocationUtilities:
 
     def validate_mash_angle_against_recipe(self, mash_data: dict, recipe_data: dict, x_mirror=1, y_mirror=1) -> dict:
         result_angle = 360
+        mash_data = self.mash_payload_from_model(mash_data)
+        recipe_elements = self.recipe_elements(recipe_data)
 
         for angle in self.MASH_BOARD_ANGLES_SEARCH_LIST:
             reference_mash_data = {}
@@ -109,20 +111,23 @@ class ReferenceComponentLocationUtilities:
             count = 1
             results_x = []
             results_y = []
-            for data in recipe_data['data']['Board']['Children']['a:Element']:
-                if data['a:Name'] in mash_data['mash_data']:
-                    x_reducer = x_mirror * float(data['RelativeLocation']['a:X']) * math.cos(angle_radians) - y_mirror * float(data['RelativeLocation']['a:Y']) * math.sin(angle_radians)
-                    y_reducer = x_mirror * float(data['RelativeLocation']['a:X']) * math.sin(angle_radians) + y_mirror * float(data['RelativeLocation']['a:Y']) * math.cos(angle_radians)
-                    reference_mash_data[data['a:Name']] = mash_data
+            for data in recipe_elements:
+                if isinstance(data, str) or data['a:Name'] not in mash_data['mash_data']:
+                    continue
+                x_reducer = x_mirror * float(data['RelativeLocation']['a:X']) * math.cos(angle_radians) - y_mirror * float(data['RelativeLocation']['a:Y']) * math.sin(angle_radians)
+                y_reducer = x_mirror * float(data['RelativeLocation']['a:X']) * math.sin(angle_radians) + y_mirror * float(data['RelativeLocation']['a:Y']) * math.cos(angle_radians)
+                reference_mash_data[data['a:Name']] = mash_data['mash_data'][data['a:Name']]
 
-                    result_x = float(mash_data['mash_data'][data['a:Name']]['x']) - x_reducer
-                    result_y = float(mash_data['mash_data'][data['a:Name']]['y']) - y_reducer
-                    results_x.append(result_x)
-                    results_y.append(result_y)
-                    if count >= self.COLLECT_DIFF_LIMIT:
-                        break
-                    count += 1
+                result_x = float(mash_data['mash_data'][data['a:Name']]['x']) - x_reducer
+                result_y = float(mash_data['mash_data'][data['a:Name']]['y']) - y_reducer
+                results_x.append(result_x)
+                results_y.append(result_y)
+                if count >= self.COLLECT_DIFF_LIMIT:
+                    break
+                count += 1
 
+            if not results_x or not results_y:
+                continue
             x_median = (sorted(results_x))[(len(results_x)) // 2]
             y_median = (sorted(results_y))[(len(results_y)) // 2]
             validate_x = self.check_if_list_values_in_range(results_x, x_median, self.ALLOWANCE_OFFSET_X, self.RESULTS_CONFIDENCE_THRESHOLD)
@@ -133,6 +138,43 @@ class ReferenceComponentLocationUtilities:
                 return {'result_angle': result_angle, 'x_median': x_median, 'y_median': y_median, 'x_mirror': x_mirror, 'y_mirror': y_mirror, 'valid': True, }
 
         return {'result_angle': result_angle, 'x_median': 0.0, 'y_median': 0.0, 'x_mirror': x_mirror, 'y_mirror': y_mirror, 'valid': False}
+
+    @staticmethod
+    def mash_payload_from_model(mash_data):
+        if hasattr(mash_data, 'update_mash_model_from_component_dict'):
+            rows = mash_data.update_mash_model_from_component_dict()
+            coordinates = {}
+            for name, row in rows.items():
+                if isinstance(row, str):
+                    continue
+                if isinstance(row, dict) and 'x' in row:
+                    coordinates[name] = row
+                elif isinstance(row, (list, tuple)) and len(row) > 5:
+                    coordinates[name] = {
+                        'component': row[0],
+                        'part': row[1],
+                        'x': row[3],
+                        'y': row[4],
+                        'rotation': row[5],
+                        'mount': row[7] if len(row) > 7 else '',
+                        'Type': row[8] if len(row) > 8 else '',
+                    }
+            return {'mash_data': coordinates}
+        if isinstance(mash_data, dict) and 'mash_data' in mash_data:
+            return mash_data
+        return {'mash_data': mash_data}
+
+    @staticmethod
+    def recipe_elements(recipe_data):
+        if hasattr(recipe_data, 'get_board_components'):
+            elements = recipe_data.get_board_components()
+        elif isinstance(recipe_data, dict) and 'data' in recipe_data:
+            elements = recipe_data['data']['Board']['Children']['a:Element']
+        else:
+            elements = recipe_data['Board']['Children']['a:Element']
+        if isinstance(elements, dict):
+            return [elements]
+        return elements
 
     @staticmethod
     def check_if_list_values_in_range(value_list: list, range_value: float, offset: float, threshold: float) ->bool:

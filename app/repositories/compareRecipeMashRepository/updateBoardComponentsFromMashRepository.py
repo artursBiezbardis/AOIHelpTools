@@ -47,8 +47,16 @@ class UpdateRecipeBoardComponentsFromMashRepository:
         return updated_data['data_other_boards'] if 'data_other_boards' in updated_data else []
 
     @staticmethod
-    def update_existing_components(data, update_data):
+    def element_list(data):
         elements = data['data']['Board']['Children']['a:Element']
+        if isinstance(elements, dict):
+            elements = [elements]
+            data['data']['Board']['Children']['a:Element'] = elements
+        return elements
+
+    @staticmethod
+    def update_existing_components(data, update_data):
+        elements = UpdateRecipeBoardComponentsFromMashRepository.element_list(data)
         for element in elements:
             try:
                 if element['a:Name'] in update_data and update_data[element['a:Name']]['action'] == 'update':
@@ -63,7 +71,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
     @staticmethod
     def remove_components(data, update_data_for_remove):
         data['removed_components'] = {}
-        elements = data['data']['Board']['Children']['a:Element']
+        elements = UpdateRecipeBoardComponentsFromMashRepository.element_list(data)
         for element in elements.copy():
             try:
                 if element['a:Name'] in update_data_for_remove and update_data_for_remove[element['a:Name']][
@@ -77,7 +85,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
     @staticmethod
     def remove_fods(data):
         if 'removed_components' in data:
-            elements = data['data']['Board']['Children']['a:Element']
+            elements = UpdateRecipeBoardComponentsFromMashRepository.element_list(data)
             for element in elements.copy():
                 try:
                     if 'FOD' in element['a:Name']:

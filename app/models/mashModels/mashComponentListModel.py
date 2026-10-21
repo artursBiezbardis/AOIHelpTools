@@ -1,6 +1,17 @@
 import app.models.mashModels.mashComponentModel as componentModel
 
 
+class _ComponentDict(dict):
+    """Name-keyed component map that iterates component objects.
+
+    A normal dict walk yields the names. Those names are strings and have no
+    get_list(), which crashes the mash-to-recipe update.
+    """
+
+    def __iter__(self):
+        return iter(self.values())
+
+
 class MashComponentListModel:
 
     def __init__(self, mash_file_data):
@@ -21,7 +32,7 @@ class MashComponentListModel:
         self.get_component_filter_dict()
 
     def create_component_dict(self):
-        component_dict = {}
+        component_dict = _ComponentDict()
         for key, mash_component in self.mash_file_data.items():
             key.strip()
             component = componentModel.MashComponentModel(mash_component)
@@ -93,8 +104,8 @@ class MashComponentListModel:
         """
         filter_dict = self.get_component_filter_dict()
 
-        selected_components = self.component_dict
-        results = {}
+        selected_components = _ComponentDict(self.component_dict)
+        results = _ComponentDict()
         if selectors:
             for selection in selectors:
                 selected_component_keys = filter_dict[selection]
@@ -133,3 +144,18 @@ class MashComponentListModel:
     def set_attribute(self, key, value):
 
         self.attributes[key] = value
+
+    def update_mash_model_from_component_dict(self):
+        new_mash_data = {}
+        components = self.component_dict.values() if isinstance(self.component_dict, dict) else self.component_dict
+        for component in components:
+            if isinstance(component, str):
+                resolved = self.component_dict.get(component) if isinstance(self.component_dict, dict) else None
+                if not hasattr(resolved, 'get_list'):
+                    continue
+                component = resolved
+            if not hasattr(component, 'get_list') or not hasattr(component, 'get_name'):
+                continue
+            new_mash_data[component.get_name()] = component.get_list()
+        self.mash_file_data = new_mash_data
+        return new_mash_data

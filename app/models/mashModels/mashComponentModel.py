@@ -44,6 +44,9 @@ class MashComponentModel:
     def get_comment(self):
         return self.component[9]
 
+    def get_list(self):
+        return self.component
+
 
 
 
