@@ -3,7 +3,7 @@ import createWindow as createWindow
 import app.services.settingsService.settingsService as settings
 import app.services.compareRecipeMashServices.compareRecipeMashService as compareRecipeMash
 import app.services.mashFileServices.exportMashToExcelService as exportExcel
-
+import app.services.compareRecipeMashServices.updateRecipeComponentsFromMash as updateRecipe
 
 class CompareRecipeMashView:
     get_settings = settings.SettingsService()
@@ -49,7 +49,13 @@ class CompareRecipeMashView:
             justification='center',
             vertical_scroll_only=False,
         )],
-        []
+        [],
+        [sg.Button('Update recipe diff', key='-UPDATE-', disabled=True, enable_events=True)],
+        [sg.Checkbox('Remove components that are not in mash', key='-REMOVE_COMPONENTS-', enable_events=True),
+         sg.Checkbox('Remove FOD\'S where components are removed', key='-REMOVE_FODS-', enable_events=True),
+         sg.Checkbox('Add components that\'s are not in recipe', key='-ADD_COMPONENTS-', enable_events=True, disabled=True),
+         ]
+
 
     ]
 
@@ -65,7 +71,9 @@ class CompareRecipeMashView:
     def run_window(self):
 
         compare = compareRecipeMash.CompareRecipeMashService()
+        update_recipe = updateRecipe.UpdateRecipeComponentsFromMash()
         table = []
+        actions = {}
         if self.window_hidden:
             self.window.un_hide()
         while True:
@@ -79,14 +87,25 @@ class CompareRecipeMashView:
                 self.window.hide()
                 self.window_hidden = True
                 break
+
+            elif event == '-UPDATE-':
+                actions['REMOVE_COMPONENTS'] = values['-REMOVE_COMPONENTS-']
+                actions['REMOVE_FODS'] = values['-REMOVE_FODS-']
+                actions['ADD_COMPONENTS'] = values['-ADD_COMPONENTS-']
+                updateRecipe.UpdateRecipeComponentsFromMash().main(table, values['-FILE1-'], actions)
+                #table = compare.main(values['-FILE1-'], values['-FILE2-'])
+                #self.window['-TABLE-'].update(values=table, visible=True)
             elif event == '-EXCEL-':
-                test = 'test'
-                exportExcel.ExportToExcelService().create_excel(table, self.table_headings)
+                exportExcel.ExportToExcelService().create_excel(table[0], self.table_headings)
             elif event == '-COMPARE-':
                 table = compare.main(values['-FILE1-'], values['-FILE2-'])
-                self.window['-TABLE-'].update(values=table, visible=True)
+                self.window['-TABLE-'].update(values=table[0], visible=True)
                 self.window['-EXCEL-'].update(disabled=False)
+                if update_recipe.validate_table_for_update(table[0]):
+                    self.window['-UPDATE-'].update(disabled=False)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
             elif event == '-EXCEL-':
-                exportExcel.ExportToExcelService().create_excel(table, self.table_headings)
+                exportExcel.ExportToExcelService().create_excel(table[0], self.table_headings)
+
+

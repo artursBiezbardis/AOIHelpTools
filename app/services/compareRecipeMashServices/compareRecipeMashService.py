@@ -1,4 +1,5 @@
-import app.services.groupComponentsByLocationService.goupComponentsByLocationService as prepareRecipe
+import utilities.recipeProcessUtilities as prepareRecipe
+# import app.services.groupComponentsByLocationService.goupComponentsByLocationService as prepareRecipe
 import app.services.mashFileServices.mashFileService as mashService
 import re
 import helpers.helpers as helper
@@ -12,14 +13,14 @@ class CompareRecipeMashService:
 
     def main(self, recipe_path, mash_path):
 
-        prepare_recipe = prepareRecipe.GroupComponentsByLocation()
+        prepare_recipe = prepareRecipe.RecipeProcessUtilities()
 
         recipe_folder_path = self.parse_recipe_folder_path(recipe_path)
         mash_service = mashService.MashFileService()
         board_side = self.pcb_side(recipe_path)
         mash_data = mash_service.extract_mash_data(mash_path)
         board_side_mash_data = self.get_board_side_data(mash_data, board_side)
-        prepare_recipe.prepare_recipe_data(recipe_folder_path)
+        prepare_recipe.prepare_tmp_recipe_data(recipe_path)
         table = self.compare_recipe_to_mash(recipe_folder_path, board_side_mash_data)
 
         return table
@@ -116,12 +117,12 @@ class CompareRecipeMashService:
             for part, value in mash.items():
                 if isinstance(value[1], float) is False and isinstance(value[6], float) is False and side in value[6].lower() and not isinstance(value[8], float) and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
                     board_side_data[part] = {'component': value[0], 'part': value[1].strip(), 'Type': value[8],
-                                             'mount': value[7]}
+                                             'mount': value[7], 'x': value[3], 'y': value[4], 'rotation': value[5]}
         else:
             for part, value in mash.items():
                 if isinstance(value[1], float) is False and not isinstance(value[8], float) and value[8].lower() != 'tht' and value[7].lower() != 'no' and value[7].lower() != 'nm':
                     board_side_data[part] = {'component': value[0], 'part': value[1].strip(), 'Type': value[8],
-                                             'mount': value[7]}
+                                             'mount': value[7], 'x': value[3], 'y': value[4], 'rotation': value[5]}
 
         return board_side_data
 
@@ -135,7 +136,8 @@ class CompareRecipeMashService:
     @staticmethod
     def compare_recipe_to_mash(recipe_path: str, mash_data) -> list:
         table = []
-        mash_components = mash_data
+        recipe_data = {}
+        mash_components = mash_data.copy()
         file = recipe_path + '/tmp/0.board'
         with open(file, 'rb') as f:
             gzip_stream = io.BytesIO(f.read())
@@ -147,6 +149,11 @@ class CompareRecipeMashService:
                     component_name = str(element['a:Name']).strip()
                     part_name = str(element['PartNumber']).strip()
                     if component_name in mash_components:
+                        recipe_data[component_name] = {'part_number': part_name,
+                                                       'x': float(element['RelativeLocation']['a:X']),
+                                                       'y': float(element['RelativeLocation']['a:Y']),
+                                                       'rotation': int(element['RelativeRotation']),
+                                                       }
                         if mash_components[component_name]['part'].lower() not in part_name.lower():
                             table.append([component_name, part_name, mash_components[component_name]['part'],
                                           mash_components[component_name]['mount'],
@@ -160,4 +167,4 @@ class CompareRecipeMashService:
                 if not table:
                     table.append(['All components validated!!', 'All components validated!!', 'All components validated!!'])
         shutil.rmtree(recipe_path + '/tmp/')
-        return table
+        return [table, {'mash_data': mash_data, 'recipe_data': recipe_data}]
