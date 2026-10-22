@@ -88,6 +88,9 @@ class CompareRecipeMashView:
                 self.window_hidden = True
                 break
 
+            elif event == '-ADD_COMPONENTS-':
+                self.window['-UPDATE-'].update(
+                    disabled=not update_recipe.update_is_available(table[0] if table else [], values['-ADD_COMPONENTS-']))
             elif event == '-UPDATE-':
                 actions['REMOVE_COMPONENTS'] = values['-REMOVE_COMPONENTS-']
                 actions['REMOVE_FODS'] = values['-REMOVE_FODS-']
@@ -101,8 +104,9 @@ class CompareRecipeMashView:
                 table = compare.main(values['-FILE1-'], values['-FILE2-'])
                 self.window['-TABLE-'].update(values=table[0], visible=True)
                 self.window['-EXCEL-'].update(disabled=False)
-                if update_recipe.validate_table_for_update(table[0]):
-                    self.window['-UPDATE-'].update(disabled=False)
+                has_parts_to_add = update_recipe.table_has_components_to_add(table[0])
+                self.window['-ADD_COMPONENTS-'].update(disabled=not has_parts_to_add, value=False)
+                self.window['-UPDATE-'].update(disabled=not update_recipe.update_is_available(table[0], False))
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
             elif event == '-EXCEL-':

@@ -13,7 +13,7 @@ class UpdateRecipeComponentsFromMash:
         recipe_process = recipeProcess.RecipeProcessUtilities()
         helpers = helper.Helpers()
         recipe_gzip_files = recipe_process.prepare_tmp_recipe_data(recipe_path)
-        update_dictionary = self.get_components_for_update(table[0])
+        update_dictionary = self.get_components_for_update(table[0], actions.get('ADD_COMPONENTS'))
         self.update_recipe_boards(recipe_gzip_files, update_dictionary, table[1], actions)
         parts_list = self.get_part_list(update_dictionary)
         updatePanel.SetUpdatedPartsToSharedRepository().main(parts_list, recipe_gzip_files['gzip_extract_path']+'/Panel')
@@ -23,23 +23,41 @@ class UpdateRecipeComponentsFromMash:
         recipe_process.create_recipe_from_tmp(recipe_path, list_of_gzip_files)
 
     @staticmethod
-    def validate_table_for_update(table=[]):
-        result = False
-        if table:
-            for component in table:
-                if component[1] != 'empty':
-                    result = True
-                    break
-        return result
+    def _difference_rows(table):
+        for item in table or []:
+            if item and item[0] != 'All components validated!!':
+                yield item
 
-    @staticmethod
-    def get_components_for_update(table: list) -> object:
-        components_to_update: object = {}
-        for item in table:
+    @classmethod
+    def validate_table_for_update(cls, table=None):
+        for component in cls._difference_rows(table):
+            if len(component) > 1 and component[1] != 'empty':
+                return True
+        return False
+
+    @classmethod
+    def table_has_components_to_add(cls, table=None):
+        for component in cls._difference_rows(table):
+            if len(component) > 2 and component[1] == 'empty' and component[2] not in ('empty', ''):
+                return True
+        return False
+
+    @classmethod
+    def update_is_available(cls, table, add_selected) -> bool:
+        return cls.validate_table_for_update(table) or (bool(add_selected) and cls.table_has_components_to_add(table))
+
+    @classmethod
+    def get_components_for_update(cls, table: list, add_components=False) -> dict:
+        components_to_update = {}
+        for item in cls._difference_rows(table):
+            if len(item) < 3:
+                continue
             if item[1] != 'empty' and item[2] != 'empty':
                 components_to_update[item[0]] = item[2]
             elif item[1] != 'empty' and item[2] == 'empty':
                 components_to_update[item[0]] = 'remove'
+            elif add_components and item[1] == 'empty' and item[2] not in ('empty', ''):
+                components_to_update[item[0]] = item[2]
         return components_to_update
 
     @staticmethod
@@ -59,8 +77,8 @@ class UpdateRecipeComponentsFromMash:
     @staticmethod
     def get_part_list(update_dictionary):
         part_list = []
-        for key, val in update_dictionary.items():
-            if val not in part_list:
+        for _key, val in update_dictionary.items():
+            if val and val != 'remove' and val not in part_list:
                 part_list.append(val)
 
         return part_list
