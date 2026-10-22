@@ -19,16 +19,13 @@ class UpdateRecipeComponentsRepository:
                             x = float(element['RelativeLocation']['a:X'])
                             y = float(element['RelativeLocation']['a:Y'])
                             for location in location_collection:
-
-                                if isinstance(x, float) and isinstance(y, float):
-                                    if location.check_contains_component(x, y):
-
-                                        component_in_location = str(element['a:Name'])
-                                        print(component_in_location)
-                                        element['a:TemplateName'] = element['a:TemplateName'] + suffix_for_update
-                                        element['PackageName'] = element['PackageName'] + suffix_for_update
-                                        element['PartNumber'] = element['PartNumber'] + suffix_for_update
-                                        break
+                                if location.check_contains_component(x, y):
+                                    component_in_location = str(element['a:Name'])
+                                    print(component_in_location)
+                                    element['a:TemplateName'] = element['a:TemplateName'] + suffix_for_update
+                                    element['PackageName'] = element['PackageName'] + suffix_for_update
+                                    element['PartNumber'] = element['PartNumber'] + suffix_for_update
+                                    break
 
                 except TypeError as e:
                     print(e)
@@ -50,13 +47,11 @@ class UpdateRecipeComponentsRepository:
                         x = float(element['RelativeLocation']['a:X'])
                         y = float(element['RelativeLocation']['a:Y'])
                         for location in location_collection:
-
-                            if isinstance(x, float) and isinstance(y, float):
-                                if location.check_contains_component(x, y):
-                                    element['a:TemplateName'] = element['a:TemplateName'] + suffix_for_update
-                                    element['PackageName'] = element['PackageName'] + suffix_for_update
-                                    element['PartNumber'] = element['PartNumber'] + suffix_for_update
-                                    break
+                            if location.check_contains_component(x, y):
+                                element['a:TemplateName'] = element['a:TemplateName'] + suffix_for_update
+                                element['PackageName'] = element['PackageName'] + suffix_for_update
+                                element['PartNumber'] = element['PartNumber'] + suffix_for_update
+                                break
 
             except TypeError as e:
                 print(e)

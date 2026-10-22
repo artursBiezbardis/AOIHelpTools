@@ -5,7 +5,6 @@ import re
 import helpers.helpers as helper
 import shutil
 import xmltodict
-import io
 import gzip
 
 
@@ -139,32 +138,29 @@ class CompareRecipeMashService:
         recipe_data = {}
         mash_components = mash_data.copy()
         file = recipe_path + '/tmp/0.board'
-        with open(file, 'rb') as f:
-            gzip_stream = io.BytesIO(f.read())
-            with gzip.GzipFile(fileobj=gzip_stream, mode='rb') as f:
-                gzip_stream = io.BytesIO(f.read())
-                data = xmltodict.parse(gzip_stream)
-                elements = data['Board']['Children']['a:Element']
-                for element in elements:
-                    component_name = str(element['a:Name']).strip()
-                    part_name = str(element['PartNumber']).strip()
-                    if component_name in mash_components:
-                        recipe_data[component_name] = {'part_number': part_name,
-                                                       'x': float(element['RelativeLocation']['a:X']),
-                                                       'y': float(element['RelativeLocation']['a:Y']),
-                                                       'rotation': int(element['RelativeRotation']),
-                                                       }
-                        if mash_components[component_name]['part'].lower() not in part_name.lower():
-                            table.append([component_name, part_name, mash_components[component_name]['part'],
-                                          mash_components[component_name]['mount'],
-                                          mash_components[component_name]['Type']])
-                        del mash_components[component_name]
-                    elif component_name not in mash_components and 'PART' not in part_name and 'Template_FOD' not in part_name:
-                        table.append([component_name, part_name, 'empty', 'empty', 'empty'])
-                if mash_components:
-                    for component, value in mash_components.items():
-                        table.append([component, 'empty', value['part'], value['mount'], value['Type']])
-                if not table:
-                    table.append(['All components validated!!', 'All components validated!!', 'All components validated!!'])
+        with gzip.open(file, 'rb') as board_file:
+            data = xmltodict.parse(board_file)
+        elements = data['Board']['Children']['a:Element']
+        for element in elements:
+            component_name = str(element['a:Name']).strip()
+            part_name = str(element['PartNumber']).strip()
+            if component_name in mash_components:
+                recipe_data[component_name] = {'part_number': part_name,
+                                               'x': float(element['RelativeLocation']['a:X']),
+                                               'y': float(element['RelativeLocation']['a:Y']),
+                                               'rotation': int(element['RelativeRotation']),
+                                               }
+                if mash_components[component_name]['part'].lower() not in part_name.lower():
+                    table.append([component_name, part_name, mash_components[component_name]['part'],
+                                  mash_components[component_name]['mount'],
+                                  mash_components[component_name]['Type']])
+                del mash_components[component_name]
+            elif component_name not in mash_components and 'PART' not in part_name and 'Template_FOD' not in part_name:
+                table.append([component_name, part_name, 'empty', 'empty', 'empty'])
+        if mash_components:
+            for component, value in mash_components.items():
+                table.append([component, 'empty', value['part'], value['mount'], value['Type']])
+        if not table:
+            table.append(['All components validated!!', 'All components validated!!', 'All components validated!!'])
         shutil.rmtree(recipe_path + '/tmp/')
         return [table, {'mash_data': mash_data, 'recipe_data': recipe_data}]

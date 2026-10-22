@@ -15,18 +15,14 @@ class RecipesListService:
         recipes_list = {}
         if entry_type == 'Component':
             entry_type = 'TemplateId'
+            entry = entry.upper()
         elif entry_type == 'Package':
             entry_type = 'PackageName'
         recipes_repository = sql.SQLiteRepository()
         for key, value in directories.items():
-            recipe_path = value
-            template_data_base = recipe_path + self.dBSubLocation
-            if entry_type == 'TemplateId':
-                entry = entry.upper()
-                result = recipes_repository.check_if_entry_exist(self.table, entry_type, entry, template_data_base)
-            else:
-                result = recipes_repository.check_if_entry_exist(self.table, entry_type, entry, template_data_base)
-            package = recipes_repository.get_component_package_name(self.table, entry, template_data_base)
+            template_data_base = value + self.dBSubLocation
+            result, package = recipes_repository.lookup_recipe_component(
+                self.table, entry_type, entry, template_data_base)
             if result:
                 recipes_list[key] = {'location': value, 'Package': package[0]}
 

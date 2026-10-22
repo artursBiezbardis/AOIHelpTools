@@ -15,16 +15,18 @@ class SetUpdatedPartsToSharedRepository:
     @staticmethod
     def update_panel_parts(data, part_list, package_list):
         panel_data = data
+        part_keys = set(part_list)
+        package_keys = set(package_list)
 
         for element in panel_data['Panel']['PartLibrary']['a:RootTemplates']['a:_templatePropertyDecorators']['b:KeyValueOfstringTemplatePropertyDecoratorDVHnpzMe']:
             try:
-                if element['b:Key'] in part_list:
+                if element['b:Key'] in part_keys:
                     element['b:Value']['c:TemplateLocation'] = 'Shared'
             except TypeError as e:
                 print(e)
         for element in data['Panel']['PackageLibrary']['a:RootTemplates']['a:_templatePropertyDecorators']['b:KeyValueOfstringTemplatePropertyDecoratorDVHnpzMe']:
             try:
-                if element['b:Key'] in package_list:
+                if element['b:Key'] in package_keys:
                     element['b:Value']['c:TemplateLocation'] = 'Shared'
             except TypeError as e:
                 print(e)
@@ -33,14 +35,10 @@ class SetUpdatedPartsToSharedRepository:
 
     def get_parts_pakages(self, parts_list, panel_path):
 
-        package_list = []
         recipe_folder = pathUtilities.FileAndFolderPathUtilities().get_folder_path_from_file_path(panel_path)
         local_library_path = recipe_folder + self.dBSubLocation
-        for part in parts_list:
-            package = sqlRepo.SQLiteRepository().get_component_package_name(self.table, part, local_library_path)
-            if package is not None:
-                package_list.append(package[0])
-
+        package_list = sqlRepo.SQLiteRepository().get_component_package_names(
+            self.table, parts_list, local_library_path)
         package_list = self.remove_list_duplicates(package_list)
         package_list = self.filter_list_remove_values(package_list)
 
@@ -48,17 +46,13 @@ class SetUpdatedPartsToSharedRepository:
 
     @staticmethod
     def remove_list_duplicates(duplicates_list):
-        edit_list = duplicates_list
-        no_duplicates_list = list(set(edit_list))
-        return no_duplicates_list
+        return list(dict.fromkeys(duplicates_list))
 
     @staticmethod
-    def filter_list_remove_values(list_to_filter: list, values_to_remove: list=[None]) -> list:
-        common_values = set(list_to_filter) & set(values_to_remove)
-        filtered_list = list_to_filter
-        if common_values:
-            for val in common_values:
-                while val in filtered_list:
-                    filtered_list.remove(val)
-
-        return filtered_list
+    def filter_list_remove_values(list_to_filter: list, values_to_remove=None) -> list:
+        if values_to_remove is None:
+            values_to_remove = (None,)
+        remove = set(values_to_remove)
+        if not remove:
+            return list_to_filter
+        return [value for value in list_to_filter if value not in remove]
