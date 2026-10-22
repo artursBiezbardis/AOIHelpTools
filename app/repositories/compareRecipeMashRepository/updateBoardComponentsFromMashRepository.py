@@ -1,20 +1,29 @@
 import utilities.gzipStreamUtilities as streamGzip
 import app.models.areaLocationModel as fodLocationModel
-import utilities.referenceComponentLocationUtilities as refComp
 
 
 class UpdateRecipeBoardComponentsFromMashRepository:
 
     def update_board_components(self, gzip_stream, update_dictionary, mash_data, actions):
+        # mash_data stays in the signature because the view passes the compare payload.
+        # Angle search used to run here and its result was discarded.
         data = {'data': streamGzip.GzipStreamUtilities().parse_gzip_stream(gzip_stream)}
+        self._ensure_element_list(data)
         updated_data = self.update_existing_components(data, update_dictionary)
-        angle = refComp.ReferenceComponentLocationUtilities().search_mash_angle_against_recipe(mash_data, data)
         if actions['REMOVE_COMPONENTS']:
             updated_data = self.remove_components(updated_data, update_dictionary)
         if actions['REMOVE_FODS']:
             updated_data = self.remove_fods(updated_data)
-        updated_gzip_stream = streamGzip.GzipStreamUtilities().update_gzip_stream(updated_data['data'], gzip_stream)
-        return updated_gzip_stream
+        streamGzip.GzipStreamUtilities().update_gzip_stream(updated_data['data'], gzip_stream)
+        return updated_data
+
+    @staticmethod
+    def _ensure_element_list(data):
+        # xmltodict keeps a single child as a dict. Iterating that dict yields keys.
+        children = data['data']['Board']['Children']
+        elements = children['a:Element']
+        if isinstance(elements, dict):
+            children['a:Element'] = [elements]
 
     @staticmethod
     def update_existing_components(data, update_data):
@@ -64,6 +73,7 @@ class UpdateRecipeBoardComponentsFromMashRepository:
                         for key, removed_component in data['removed_components'].items():
                             if fod_area_location.check_contains_component(float(removed_component['RelativeLocation']['a:X']), float(removed_component['RelativeLocation']['a:Y'])):
                                 elements.remove(element)
+                                break
                 except TypeError as e:
                     print(e)
 

@@ -6,13 +6,12 @@ import io
 class UpdateRecipesRepository:
 
     def stream_gzip_for_update(self, part_name, package_name, recipe_path):
-        with open(recipe_path + '/tmp/Panel', 'rb') as f:
-            gzip_stream = io.BytesIO(f.read())
+        panel_path = recipe_path + '/tmp/Panel'
+        with open(panel_path, 'rb') as raw_panel:
+            updated_gzip_stream = self.update_panel_gzip_stream(raw_panel, part_name, package_name)
 
-        updated_gzip_stream = self.update_panel_gzip_stream(gzip_stream, part_name, package_name)
-
-        with open(recipe_path + '/tmp/Panel', 'wb') as f_updated:
-            f_updated.write(updated_gzip_stream.read())
+        with open(panel_path, 'wb') as updated_panel:
+            updated_panel.write(updated_gzip_stream.read())
 
     @staticmethod
     def update_panel_gzip_stream(gzip_stream, part_name, package_name):

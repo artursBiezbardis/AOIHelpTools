@@ -1,4 +1,3 @@
-import io
 import os
 import shutil
 
@@ -17,14 +16,13 @@ class PrepareRecipeToGroupComponentsRepository:
         list_of_gzip_files = group_components.prepare_recipe_data(recipe_path)
         list_of_gzip_files = self.create_copy_of_first_board(recipe_path, list_of_gzip_files)
 
-        with open(recipe_path + '/tmp/0.board', 'rb') as f:
-            gzip_stream = io.BytesIO(f.read())
-
+        board_path = recipe_path + '/tmp/0.board'
         recipe_repo = updateRecipe.UpdateRecipeComponentsRepository()
-        updated_gzip_stream = recipe_repo.prepare_locations_recipe_gzip_stream(gzip_stream)
+        with open(board_path, 'rb') as raw_board:
+            updated_gzip_stream = recipe_repo.prepare_locations_recipe_gzip_stream(raw_board)
 
-        with open(recipe_path + '/tmp/0.board', 'wb') as f_updated:
-            f_updated.write(updated_gzip_stream.read())
+        with open(board_path, 'wb') as updated_board:
+            updated_board.write(updated_gzip_stream.read())
         updated_recipe = recipe_path + '/' + helpers.get_filename_from_path(recipe_path) + '.recipe'
         compressAndExtractRecipes.CompressAndExtractRecipesHelper().compress_files_zip(updated_recipe,
                                                                                        list_of_gzip_files,

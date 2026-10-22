@@ -7,19 +7,13 @@ class CompressAndExtractRecipesHelper:
 
     @staticmethod
     def extract_gzip(path, file_name, out_put_path=''):
-        file_path = path + file_name
-        with gzip.open(file_path, 'rb') as gz_file:
-            file_content = gz_file.read()
-        with open(path + out_put_path, 'wb') as out_put_file:
-            out_put_file.write(file_content)
+        with gzip.open(path + file_name, 'rb') as gz_file, open(path + out_put_path, 'wb') as out_put_file:
+            shutil.copyfileobj(gz_file, out_put_file, length=1024 * 1024)
 
     @staticmethod
     def compress_gzip(path, file_name, out_put_path=''):
-        file_path = path + file_name
-        with open(file_path, 'rb') as gz_file:
-            file_content = gz_file.read()
-        with gzip.open(out_put_path, 'wb') as out_put_file:
-            out_put_file.write(file_content)
+        with open(path + file_name, 'rb') as source, gzip.open(out_put_path, 'wb') as out_put_file:
+            shutil.copyfileobj(source, out_put_file, length=1024 * 1024)
 
 
     @staticmethod

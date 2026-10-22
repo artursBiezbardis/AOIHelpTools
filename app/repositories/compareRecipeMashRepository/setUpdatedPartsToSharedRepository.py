@@ -15,16 +15,18 @@ class SetUpdatedPartsToSharedRepository:
     @staticmethod
     def update_panel_parts(data, part_list, package_list):
         panel_data = data
+        part_keys = set(part_list)
+        package_keys = set(package_list)
 
         for element in panel_data['Panel']['PartLibrary']['a:RootTemplates']['a:_templatePropertyDecorators']['b:KeyValueOfstringTemplatePropertyDecoratorDVHnpzMe']:
             try:
-                if element['b:Key'] in part_list:
+                if element['b:Key'] in part_keys:
                     element['b:Value']['c:TemplateLocation'] = 'Shared'
             except TypeError as e:
                 print(e)
         for element in data['Panel']['PackageLibrary']['a:RootTemplates']['a:_templatePropertyDecorators']['b:KeyValueOfstringTemplatePropertyDecoratorDVHnpzMe']:
             try:
-                if element['b:Key'] in package_list:
+                if element['b:Key'] in package_keys:
                     element['b:Value']['c:TemplateLocation'] = 'Shared'
             except TypeError as e:
                 print(e)
@@ -32,19 +34,15 @@ class SetUpdatedPartsToSharedRepository:
         return panel_data
 
     def get_parts_pakages(self, parts_list, panel_path):
-
-        package_list = []
+        if not parts_list:
+            return []
         recipe_folder = pathUtilities.FileAndFolderPathUtilities().get_folder_path_from_file_path(panel_path)
         local_library_path = recipe_folder + self.dBSubLocation
-        for part in parts_list:
-            package = sqlRepo.SQLiteRepository().get_component_package_name(self.table, part, local_library_path)
-            if package is not None:
-                package_list.append(package[0])
-
-        package_list = self.remove_list_duplicates(package_list)
-        package_list = self.filter_list_remove_values(package_list)
-
-        return package_list
+        placeholders = ','.join('?' for _ in parts_list)
+        query = f'SELECT packageName FROM {self.table} WHERE TemplateId IN ({placeholders})'
+        with sqlRepo.SQLiteRepository.connect_to_db(local_library_path) as conn:
+            rows = conn.execute(query, tuple(parts_list)).fetchall()
+        return list({row[0] for row in rows if row[0] is not None})
 
     @staticmethod
     def remove_list_duplicates(duplicates_list):

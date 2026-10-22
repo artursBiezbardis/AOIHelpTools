@@ -34,10 +34,4 @@ class ViewHelper:
         return layouts
 
     def string_length_adjustment_with_white_space(self, string:str, length:int, additional_string='') -> str:
-        string = string+additional_string
-        string_length =len(string)
-        for i in range(length):
-            if i >= string_length:
-                string += ' '
-
-        return string
+        return (string + additional_string).ljust(length)

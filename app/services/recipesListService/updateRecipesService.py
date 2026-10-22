@@ -11,7 +11,7 @@ class UpdateRecipesService:
     def update_recipes(self, recipes_results, part_name, selection):
         for key, value in recipes_results.items():
             recipe_folder_path = value['location']
-            self.prepare_recipe_data(recipe_folder_path)
+            # set_to_shared_stream extracts the recipe. Doing it here unpacked the same zip twice.
             self.set_to_shared_stream(recipe_folder_path, part_name, value['Package'], selection)
             shutil.rmtree(recipe_folder_path + '\\tmp')
 

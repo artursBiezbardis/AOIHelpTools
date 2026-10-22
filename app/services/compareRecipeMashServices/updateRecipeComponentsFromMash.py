@@ -59,8 +59,9 @@ class UpdateRecipeComponentsFromMash:
     @staticmethod
     def get_part_list(update_dictionary):
         part_list = []
-        for key, val in update_dictionary.items():
-            if val not in part_list:
-                part_list.append(val)
+        for val in update_dictionary.values():
+            if val == 'remove' or val in part_list:
+                continue
+            part_list.append(val)
 
         return part_list
