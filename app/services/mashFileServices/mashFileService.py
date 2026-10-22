@@ -1,27 +1,34 @@
-import app.repositories.mashFileRepository.mashFileRepository as mashFileRepo
-import re
-import helpers.helpers as helper
-import numpy as np
 import json
+import math
+import re
+
+import app.repositories.mashFileRepository.mashFileRepository as mashFileRepo
+import helpers.helpers as helper
 
 
 class MashFileService:
+    _COMPONENT_NAME_RE = re.compile(r'[a-zA-Z]+\d{1,7}\Z')
+    _HELPER = helper.Helpers()
+    _MASH_FIELD_COUNT = 10
+    _NO_DATA = 'no data'
 
     def extract_mash_data(self, location):
 
         mash_table = mashFileRepo.MashFileRepository().get_mash_table(location)
         component_names = []
         mash_data = {}
-        file_name = helper.Helpers().get_filename_from_path(location)
+        file_name = self._HELPER.get_filename_from_path(location)
+        is_component_name = self._COMPONENT_NAME_RE.fullmatch
         for item in mash_table:
-            if not isinstance(item[0], (int, float, complex)):
-                component_name = item[0].strip()
-                if self.is_valid_component_name(component_name):
-                    item = np.array(item)
-                    item = item.tolist()
-                    item = self.format_data_content(item)
-                    mash_data[component_name] = item
-                    component_names.append(component_name)
+            name_cell = item[0]
+            if isinstance(name_cell, (int, float, complex)):
+                continue
+            component_name = name_cell.strip()
+            if is_component_name(component_name) is None:
+                continue
+            row = item.tolist() if hasattr(item, 'tolist') else list(item)
+            mash_data[component_name] = self.format_data_content(row)
+            component_names.append(component_name)
         results = [file_name, component_names, mash_data]
 
         return results
@@ -44,84 +51,86 @@ class MashFileService:
         mash_columns_not_to_compare = self.convert_to_list_mash_columns_not_to_compare(mash_values_not_compared)
 
         for component in comp_list:
-            no_data = ['no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data', 'no data',
-                       'no data', 'no data']
             if component not in mash_data1:
-                mash_data1[component] = no_data
+                mash_data1[component] = [self._NO_DATA] * self._MASH_FIELD_COUNT
             if component not in mash_data2:
-                mash_data2[component] = no_data
+                mash_data2[component] = [self._NO_DATA] * self._MASH_FIELD_COUNT
 
-            mash_data1[component] = self.update_cell_to_ignore(mash_data1[component],
-                                                               mash_columns_not_to_compare)
-            mash_data2[component] = self.update_cell_to_ignore(mash_data2[component],
-                                                               mash_columns_not_to_compare)
-            if json.dumps(mash_data1[component]) != json.dumps(mash_data2[component]):
+            row1 = self.update_cell_to_ignore(mash_data1[component], mash_columns_not_to_compare)
+            row2 = self.update_cell_to_ignore(mash_data2[component], mash_columns_not_to_compare)
+            if self._rows_differ(row1, row2):
                 row_count += 1
-                data_row1 = mash_data1[component]
-                data_row2 = mash_data2[component]
 
                 # adds differences location in 3D array first value in 2D array is row number for adding colors to excel export
-                data_row_diff_location = self.locate_diff_in_row(row_count, data_row1, data_row2)
+                data_row_diff_location = self.locate_diff_in_row(row_count, row1, row2)
                 cells_with_differences.append(data_row_diff_location[0])
                 cells_with_differences.append(data_row_diff_location[1])
-                data_row1.insert(0, file_name1)
-                data_row2.insert(0, file_name2)
-                compare_table.append(data_row1)
-                compare_table.append(data_row2)
+                row1.insert(0, file_name1)
+                row2.insert(0, file_name2)
+                compare_table.append(row1)
+                compare_table.append(row2)
                 compare_table.append(empty_row)
                 row_count += 2
 
         return [compare_table, cells_with_differences]
 
     @staticmethod
-    def get_list_of_components_from_mashes(comp_name_list1, comp_name_list2):
-
-        comp_name_list1.extend(comp_name_list2)
-        comp_name_list = list(set(comp_name_list1))
-        comp_name_list.sort()
-        return comp_name_list
+    def _rows_differ(left, right):
+        """Match json.dumps list comparison without serializing equal rows."""
+        if len(left) != len(right):
+            return True
+        for item1, item2 in zip(left, right):
+            if item1 == item2 and type(item1) is type(item2):
+                if isinstance(item1, float) and math.copysign(1.0, item1) != math.copysign(1.0, item2):
+                    return True
+                continue
+            if (
+                isinstance(item1, float)
+                and isinstance(item2, float)
+                and type(item1) is type(item2)
+                and math.isnan(item1)
+                and math.isnan(item2)
+            ):
+                continue
+            if json.dumps(item1) != json.dumps(item2):
+                return True
+        return False
 
     @staticmethod
-    def is_valid_component_name(name):
+    def get_list_of_components_from_mashes(comp_name_list1, comp_name_list2):
+        return sorted(set(comp_name_list1).union(comp_name_list2))
+
+    @classmethod
+    def is_valid_component_name(cls, name):
         try:
-            return re.fullmatch(r'[a-zA-Z]+\d{1,7}', name) is not None
+            return cls._COMPONENT_NAME_RE.fullmatch(name) is not None
         except TypeError:
             return False
 
     @staticmethod
     def locate_diff_in_row(row, mash_data1, mash_data2):
-
-        diff1 = []
-        diff2 = []
-        diff1.append(row)
-        for i, (item1, item2) in enumerate(zip(mash_data1, mash_data2)):
-            if item1 != item2:
-                diff1.append(i)
-
-        for item in diff1:
-            diff2.append(item)
+        diff1 = [row]
+        diff1.extend(
+            index for index, (item1, item2) in enumerate(zip(mash_data1, mash_data2)) if item1 != item2
+        )
+        diff2 = diff1.copy()
         diff2[0] = row + 1
-
         return [diff1, diff2]
 
-    @staticmethod
-    def format_data_content(item):
-        component = item
+    @classmethod
+    def format_data_content(cls, item):
+        # Compare and export use the first 10 mash fields. Dropping the tail by
+        # index while iterating skipped columns and raised once a row was wide enough.
+        component = item[:cls._MASH_FIELD_COUNT]
+        text = cls._HELPER
         for key, value in enumerate(component):
-            if key >= 10:
-                del component[key]
+            if isinstance(value, (int, float)):
+                continue
+            str_value = str(value).strip().replace(",", ".")
+            if text.is_number(str_value):
+                component[key] = float(str_value)
             else:
-                if not isinstance(value, (int, float)):
-                    str_value = str(value).strip().replace(",", ".")
-
-                    if not helper.Helpers().is_number(str_value):
-                        str_value = str_value.upper()
-                        str_value = helper.Helpers().replace_special_letters(str_value)
-                    else:
-                        str_value = float(str_value)
-
-                    component[key] = str_value
-
+                component[key] = text.replace_special_letters(str_value.upper())
         return component
 
     @staticmethod

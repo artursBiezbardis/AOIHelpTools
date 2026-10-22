@@ -2,41 +2,37 @@ import os
 
 
 class Helpers:
+    # Single-character map, so one translation pass matches the old per-character replaces.
+    _SPECIAL_LETTER_TRANSLATION = str.maketrans({
+        'ā': 'a',
+        'ē': 'e',
+        'ī': 'i',
+        'ū': 'u',
+        'Ā': 'A',
+        'Ē': 'E',
+        'Ī': 'I',
+        'Ū': 'U',
+        'č': 'c',
+        'ģ': 'g',
+        'ķ': 'k',
+        'ļ': 'l',
+        'ņ': 'n',
+        'š': 's',
+        'ž': 'z',
+        'Č': 'C',
+        'Ģ': 'G',
+        'Ķ': 'K',
+        'Ļ': 'L',
+        'Ņ': 'N',
+        'Š': 'S',
+        'Ž': 'Z',
+    })
 
     def get_filename_from_path(self, location):
         return os.path.basename(location)
 
     def replace_special_letters(self, input_string: str):
-        # Dictionary mapping Latvian special characters to regular characters
-        replacements = {
-            'ā': 'a',
-            'ē': 'e',
-            'ī': 'i',
-            'ū': 'u',
-            'Ā': 'A',
-            'Ē': 'E',
-            'Ī': 'I',
-            'Ū': 'U',
-            'č': 'c',
-            'ģ': 'g',
-            'ķ': 'k',
-            'ļ': 'l',
-            'ņ': 'n',
-            'š': 's',
-            'ž': 'z',
-            'Č': 'C',
-            'Ģ': 'G',
-            'Ķ': 'K',
-            'Ļ': 'L',
-            'Ņ': 'N',
-            'Š': 'S',
-            'Ž': 'Z'
-        }
-
-        for original, replacement in replacements.items():
-            input_string = input_string.replace(original, replacement)
-
-        return input_string
+        return input_string.translate(self._SPECIAL_LETTER_TRANSLATION)
 
     def is_number(self, string):
         try:

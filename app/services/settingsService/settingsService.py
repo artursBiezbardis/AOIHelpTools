@@ -13,14 +13,12 @@ class SettingsService:
 
     def update_settings_values(self, view_values):
         settings = sqlLite.SQLiteRepository().get_all(self.settings_table, self.data_base)
-        for name, val in settings:
-            if val is not view_values[name]:
-                sqlLite.SQLiteRepository().set_value_by_name(
-                    self.settings_table,
-                    name,
-                   view_values[name],
-                    self.data_base
-                )
+        updates = [
+            (view_values[name], name)
+            for name, val in settings
+            if val != view_values[name]
+        ]
+        sqlLite.SQLiteRepository().set_values_by_name(self.settings_table, updates, self.data_base)
 
     def get_setting(self, name):
 
