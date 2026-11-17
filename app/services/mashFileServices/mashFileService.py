@@ -2,7 +2,6 @@ import app.repositories.mashFileRepository.mashFileRepository as mashFileRepo
 import re
 import helpers.helpers as helper
 import numpy as np
-import json
 
 
 class MashFileService:
@@ -55,12 +54,12 @@ class MashFileService:
                                                                mash_columns_not_to_compare)
             mash_data2[component] = self.update_cell_to_ignore(mash_data2[component],
                                                                mash_columns_not_to_compare)
-            if json.dumps(mash_data1[component]) != json.dumps(mash_data2[component]):
+            if not self.rows_equal(mash_data1[component], mash_data2[component]):
                 row_count += 1
                 data_row1 = mash_data1[component]
                 data_row2 = mash_data2[component]
 
-                # adds differences location in 3D array first value in 2D array is row number for adding colors to excel export
+                # Row/column pairs used to paint differing Excel cells yellow on export.
                 data_row_diff_location = self.locate_diff_in_row(row_count, data_row1, data_row2)
                 cells_with_differences.append(data_row_diff_location[0])
                 cells_with_differences.append(data_row_diff_location[1])
@@ -72,6 +71,12 @@ class MashFileService:
                 row_count += 2
 
         return [compare_table, cells_with_differences]
+
+    @staticmethod
+    def rows_equal(row1, row2):
+        if len(row1) != len(row2):
+            return False
+        return all(MashFileService.values_equal(left, right) for left, right in zip(row1, row2))
 
     @staticmethod
     def get_list_of_components_from_mashes(comp_name_list1, comp_name_list2):
@@ -95,7 +100,7 @@ class MashFileService:
         diff2 = []
         diff1.append(row)
         for i, (item1, item2) in enumerate(zip(mash_data1, mash_data2)):
-            if item1 != item2:
+            if not MashFileService.values_equal(item1, item2):
                 diff1.append(i)
 
         for item in diff1:
@@ -105,22 +110,47 @@ class MashFileService:
         return [diff1, diff2]
 
     @staticmethod
+    def values_equal(left, right):
+        left = MashFileService.normalize_cell(left)
+        right = MashFileService.normalize_cell(right)
+        return left == right
+
+    @staticmethod
+    def normalize_cell(value):
+        if value is None:
+            return ''
+        if isinstance(value, float) and np.isnan(value):
+            return ''
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return float(value)
+        text = str(value).strip()
+        if text.lower() in ('', 'nan', 'none'):
+            return ''
+        return value
+
+    @staticmethod
     def format_data_content(item):
         component = item
         for key, value in enumerate(component):
             if key >= 10:
                 del component[key]
             else:
-                if not isinstance(value, (int, float)):
+                if isinstance(value, float) and np.isnan(value):
+                    component[key] = ''
+                elif not isinstance(value, (int, float)):
                     str_value = str(value).strip().replace(",", ".")
 
-                    if not helper.Helpers().is_number(str_value):
+                    if str_value.lower() in ('', 'nan', 'none'):
+                        str_value = ''
+                    elif not helper.Helpers().is_number(str_value):
                         str_value = str_value.upper()
                         str_value = helper.Helpers().replace_special_letters(str_value)
                     else:
                         str_value = float(str_value)
 
                     component[key] = str_value
+                elif isinstance(value, (int, float)) and not isinstance(value, bool):
+                    component[key] = float(value)
 
         return component
 
