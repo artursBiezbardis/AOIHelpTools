@@ -1,4 +1,4 @@
-import PySimpleGUI as sg
+import createWindow as ui
 
 
 class ViewHelper:
@@ -8,36 +8,21 @@ class ViewHelper:
             input_layouts,
             text_background_color=None,
             folder_browser=True,
-            stored_input=[]
+            stored_input=None
     ):
-
+        if stored_input is None:
+            stored_input = {}
         layouts = []
 
         for val in input_layouts:
             val_to_upper_case = val.upper().replace(' ', '_')
             val_first_upper_case = val.capitalize()
             name = '-' + val_to_upper_case + '_PATH-'
-
-            layouts.append(
-                [sg.Text(
-                    self.string_length_adjustment_with_white_space(val_first_upper_case, 50, ' path'),
-                    background_color=text_background_color
-                ),
-                 sg.Input(
-                     default_text=('' if stored_input == [] else stored_input[name]),
-                     key=name,
-                     enable_events=True
-                 ),
-                 sg.FolderBrowse() if folder_browser else sg.FileBrowse()
-                 ]
-            )
+            default_text = '' if not stored_input else stored_input[name]
+            browse = ui.folder_browse() if folder_browser else ui.file_browse()
+            layouts.append([
+                ui.text(val_first_upper_case + ' path', text_background_color, width=34),
+                ui.input_box(name, default=default_text, enable_events=True, expand=True),
+                browse,
+            ])
         return layouts
-
-    def string_length_adjustment_with_white_space(self, string:str, length:int, additional_string='') -> str:
-        string = string+additional_string
-        string_length =len(string)
-        for i in range(length):
-            if i >= string_length:
-                string += ' '
-
-        return string

@@ -1,10 +1,12 @@
+import os
+
 import app.repositories.sqlLiteRepository.sqlLiteRepository as sqlLite
 import helpers.helpers as helper
 import root
 
 
 class SettingsService:
-    data_base = settings_database = root.RootLocation().root_dir+'\\settings.db'
+    data_base = settings_database = os.path.join(root.RootLocation().root_dir, 'settings.db')
     settings_table = 'setup'
 
     def get_settings(self):
