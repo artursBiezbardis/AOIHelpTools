@@ -9,6 +9,21 @@
 
 # Installation
 
+## Windows
+
+The app is a desktop window built with tkinter, which is included with Python. It needs Python 3.11. The libraries in `requirements.txt` do not install on newer Python versions.
+
+1. Install Python 3.11 from https://www.python.org/downloads/release/python-3119/
+   In the installer, leave **py launcher**, **Add python.exe to PATH**, and **tcl/tk and IDLE** selected.
+2. Clone this repository.
+3. Double-click `setup.bat` in the project folder.
+
+`setup.bat` creates a `.venv` folder, installs the libraries, and starts the app. After that, start it again with `run.bat`.
+
+Double-click `build.bat` to package that environment into `dist\AOIHelpTools\AOIHelpTools.exe` and start the packaged app.
+
+## From a terminal
+
 * from cmd or terminal navigate location to download
 * run `git clone git@github.com:artursBiezbardis/AOIHelpTools.git`
 * install `Python3.11`

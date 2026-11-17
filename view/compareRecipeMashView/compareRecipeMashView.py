@@ -1,101 +1,90 @@
-import PySimpleGUI as sg
-import createWindow as createWindow
+import os
+
+import createWindow as ui
 import app.services.settingsService.settingsService as settings
 import app.services.compareRecipeMashServices.compareRecipeMashService as compareRecipeMash
 import app.services.mashFileServices.exportMashToExcelService as exportExcel
 import app.services.compareRecipeMashServices.updateRecipeComponentsFromMash as updateRecipe
 
+
+def _existing_folder(path):
+    if path and os.path.isdir(path):
+        return path
+    return None
+
+
 class CompareRecipeMashView:
     get_settings = settings.SettingsService()
     title = 'Select mash and recipe to compare'
-    window_size = (1200, 500)
-    mash_compare_table = []
+    window_size = (1100, 640)
     table_headings = [
         'Component',
         'Recipe Part Name',
         'Mash Part Name',
         'Mash Mount',
-        'Mash Type'
-        ]
+        'Mash Type',
+    ]
 
     layout = [
-        [sg.Text('Check\'s if recipes component\'s parts name matches to recipe')],
+        [ui.text("Checks if a recipe component's part name matches the mash")],
         [
-            [
-                sg.Input(key='-FILE1-', enable_events=True),
-                sg.FileBrowse(file_types=(("Recipes Files", "*.recipe"),),
-                              initial_folder=get_settings.get_setting('-RECIPES_PATH-'))
-
-            ],
-            [
-                sg.Input(key='-FILE2-', enable_events=True),
-                sg.FileBrowse(file_types=(("Excel Files", "*.xls"), ("Excel Files", "*.xlsx")), initial_folder='Z:\cad')
-            ]
+            ui.input_box('-FILE1-', enable_events=True, expand=True),
+            ui.file_browse(
+                (("Recipe files", "*.recipe"),),
+                initial_folder=_existing_folder(get_settings.get_setting('-RECIPES_PATH-')),
+            ),
         ],
         [
-            sg.B('Compare Mash and Recipe', key='-COMPARE-', disabled=True, enable_events=True),
-            sg.Button('Export to EXCEL', key='-EXCEL-', disabled=True, enable_events=True),
-            sg.Button('Cancel')
-
+            ui.input_box('-FILE2-', enable_events=True, expand=True),
+            ui.file_browse(
+                (("Excel files", "*.xls"), ("Excel files", "*.xlsx")),
+                initial_folder=_existing_folder('Z:\\cad'),
+            ),
         ],
-        [sg.Table(
-            mash_compare_table,
-            key='-TABLE-',
-            headings=table_headings,
-            visible=False,
-            col_widths=[24, 24, 8, 8, 8],
-            expand_x=True,
-            auto_size_columns=False,
-            justification='center',
-            vertical_scroll_only=False,
-        )],
-        [],
-        [sg.Button('Update recipe diff', key='-UPDATE-', disabled=True, enable_events=True)],
-        [sg.Checkbox('Remove components that are not in mash', key='-REMOVE_COMPONENTS-', enable_events=True),
-         sg.Checkbox('Remove FOD\'S where components are removed', key='-REMOVE_FODS-', enable_events=True),
-         sg.Checkbox('Add components that\'s are not in recipe', key='-ADD_COMPONENTS-', enable_events=True, disabled=True),
-         ]
-
-
+        [
+            ui.button('Compare Mash and Recipe', key='-COMPARE-', disabled=True),
+            ui.button('Export to EXCEL', key='-EXCEL-', disabled=True),
+            ui.button('Cancel'),
+        ],
+        [ui.table('-TABLE-', table_headings, visible=False, height=14)],
+        [ui.button('Update recipe diff', key='-UPDATE-', disabled=True)],
+        [
+            ui.checkbox('Remove components that are not in mash', key='-REMOVE_COMPONENTS-', enable_events=True),
+            ui.checkbox("Remove FOD's where components are removed", key='-REMOVE_FODS-', enable_events=True),
+            ui.checkbox("Add components that are not in recipe", key='-ADD_COMPONENTS-', enable_events=True, disabled=True),
+        ],
     ]
 
     def __init__(self):
         self.view = ''
-        self.window = createWindow.CreateWindow.create(
-            createWindow.CreateWindow(),
-            self.title,
-            self.layout,
-            self.window_size)
-        self.window_hidden = False
+        self.window = ui.CreateWindow().create(self.title, self.layout, self.window_size)
+        self.window_hidden = True
 
     def run_window(self):
-
         compare = compareRecipeMash.CompareRecipeMashService()
         update_recipe = updateRecipe.UpdateRecipeComponentsFromMash()
         table = []
-        actions = {}
         if self.window_hidden:
             self.window.un_hide()
+            self.window_hidden = False
         while True:
             event, values = self.window.read()
-
-            if event == sg.WIN_CLOSED:
+            if event is None:
                 self.window.close()
                 break
-            elif event == 'Cancel':
+            if event == 'Cancel':
                 self.view = 'main view'
                 self.window.hide()
                 self.window_hidden = True
                 break
-
-            elif event == '-UPDATE-':
-                actions['REMOVE_COMPONENTS'] = values['-REMOVE_COMPONENTS-']
-                actions['REMOVE_FODS'] = values['-REMOVE_FODS-']
-                actions['ADD_COMPONENTS'] = values['-ADD_COMPONENTS-']
+            if event == '-UPDATE-':
+                actions = {
+                    'REMOVE_COMPONENTS': values['-REMOVE_COMPONENTS-'],
+                    'REMOVE_FODS': values['-REMOVE_FODS-'],
+                    'ADD_COMPONENTS': values['-ADD_COMPONENTS-'],
+                }
                 updateRecipe.UpdateRecipeComponentsFromMash().main(table, values['-FILE1-'], actions)
-                #table = compare.main(values['-FILE1-'], values['-FILE2-'])
-                #self.window['-TABLE-'].update(values=table, visible=True)
-            elif event == '-EXCEL-':
+            elif event == '-EXCEL-' and table:
                 exportExcel.ExportToExcelService().create_excel(table[0], self.table_headings)
             elif event == '-COMPARE-':
                 table = compare.main(values['-FILE1-'], values['-FILE2-'])
@@ -105,7 +94,3 @@ class CompareRecipeMashView:
                     self.window['-UPDATE-'].update(disabled=False)
             elif values['-FILE1-'] and values['-FILE2-']:
                 self.window['-COMPARE-'].update(disabled=False)
-            elif event == '-EXCEL-':
-                exportExcel.ExportToExcelService().create_excel(table[0], self.table_headings)
-
-
