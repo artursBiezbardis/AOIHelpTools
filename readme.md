@@ -20,6 +20,8 @@ The app is a desktop window built with tkinter, which is included with Python. I
 
 `setup.bat` creates a `.venv` folder, installs the libraries, and starts the app. After that, start it again with `run.bat`.
 
+Double-click `build.bat` to package that environment into `dist\AOIHelpTools\AOIHelpTools.exe` and start the packaged app.
+
 ## From a terminal
 
 * from cmd or terminal navigate location to download
