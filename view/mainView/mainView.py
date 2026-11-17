@@ -3,21 +3,33 @@ import createWindow as ui
 
 class MainView:
     title = 'AOI Help Tools'
-    button1_title = 'Compare Mash'
-    button_cancel_title = 'Cancel'
-    button2_title = 'Find Recipes by Part'
+    button_cancel_title = 'Quit'
     button_settings = 'Settings'
-    button_group_components = 'Group Components'
-    button_compare_recipe_mash = 'Compare Recipe Mash'
 
-    window_size = (760, 120)
+    tools = (
+        (
+            'Compare Mash',
+            'Diff two mash files so you can seed a new AOI recipe from an existing one.',
+        ),
+        (
+            'Find Recipes by Part',
+            'Find every recipe that uses a part, then update it from the library template.',
+        ),
+        (
+            'Group Components',
+            'Draw an area to split out components that need their own pad treatment.',
+        ),
+        (
+            'Compare Recipe Mash',
+            'See mash vs recipe part mismatches, then update the recipe from mash data.',
+        ),
+    )
+
+    window_size = (640, 560)
     layout = [
-        [
-            ui.button(button1_title),
-            ui.button(button2_title),
-            ui.button(button_group_components),
-            ui.button(button_compare_recipe_mash),
-        ],
+        [ui.text('AOI Help Tools', heading=True)],
+        [ui.text('Pick a tool. Less hunting through recipes — more boards inspected.', muted=True)],
+        [ui.tool_card(name, description) for name, description in tools],
         [
             ui.button(button_settings),
             ui.button(button_cancel_title),
@@ -32,18 +44,13 @@ class MainView:
     def run_window(self):
         self.window.un_hide()
         self.window_hidden = False
+        tool_names = {name for name, _description in self.tools}
         while True:
             event, _values = self.window.read()
-            if event is None or event == 'Cancel':
+            if event is None or event == 'Quit' or event == 'Cancel':
                 self.view = ''
                 break
-            elif event in (
-                'Compare Mash',
-                'Find Recipes by Part',
-                'Settings',
-                'Group Components',
-                'Compare Recipe Mash',
-            ):
+            elif event == 'Settings' or event in tool_names:
                 self.view = event
                 self.window.hide()
                 self.window_hidden = True
