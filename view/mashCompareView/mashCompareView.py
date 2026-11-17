@@ -54,6 +54,7 @@ class MashCompare:
 
     def run_window(self):
         table = []
+        cells_with_differences = []
         if self.window_hidden:
             self.window.un_hide()
             self.window_hidden = False
@@ -77,11 +78,15 @@ class MashCompare:
                 '-SIDE-': values['-SIDE-'],
             }
             if event == '-EXCEL-' and table:
-                exportExcel.ExportToExcelService().create_excel(table, self.mash_compare_table_headings)
+                exportExcel.ExportToExcelService().create_excel(
+                    table,
+                    self.mash_compare_table_headings,
+                    cells_with_differences,
+                )
             elif event == '-COMPARE-':
-                table = mashService.MashFileService().compare_two_mashes(
+                table, cells_with_differences = mashService.MashFileService().compare_two_mashes(
                     values['-FILE1-'], values['-FILE2-'], compared_columns
-                )[0]
+                )
                 self.window['-TABLE-'].update(values=table, visible=True)
                 self.window['-EXCEL-'].update(disabled=False)
             elif values['-FILE1-'] and values['-FILE2-']:
