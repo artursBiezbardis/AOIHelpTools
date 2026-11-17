@@ -3,10 +3,17 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 
 
-BACKGROUND = "#2B2B28"
-FOREGROUND = "#F2F2F2"
-FIELD = "#3C3C38"
-ACCENT = "#5C5C56"
+BACKGROUND = "#1A2220"
+FOREGROUND = "#E8EEEA"
+MUTED = "#8FA39A"
+FIELD = "#24302C"
+PANEL = "#20302B"
+ACCENT = "#3D9B7A"
+ACCENT_SOFT = "#2F6F5A"
+BORDER = "#31443D"
+FONT_UI = ("DejaVu Sans", 10)
+FONT_UI_BOLD = ("DejaVu Sans", 12, "bold")
+FONT_HEADING = ("DejaVu Sans", 18, "bold")
 
 _ROOT = None
 
@@ -20,24 +27,67 @@ def get_root():
         style.theme_use("clam")
         style.configure("App.TFrame", background=BACKGROUND)
         style.configure("App.TLabel", background=BACKGROUND, foreground=FOREGROUND)
-        style.configure("App.TButton", padding=(8, 4))
+        style.configure(
+            "App.TButton",
+            padding=(12, 7),
+            background=PANEL,
+            foreground=FOREGROUND,
+            bordercolor=BORDER,
+            lightcolor=PANEL,
+            darkcolor=PANEL,
+            focusthickness=0,
+        )
+        style.map(
+            "App.TButton",
+            background=[("active", ACCENT_SOFT), ("pressed", ACCENT), ("disabled", FIELD)],
+            foreground=[("disabled", MUTED)],
+        )
+        style.configure("Accent.TButton", padding=(12, 7), background=ACCENT, foreground="#F4FFFB")
+        style.map(
+            "Accent.TButton",
+            background=[("active", "#4BB08C"), ("pressed", ACCENT_SOFT), ("disabled", FIELD)],
+            foreground=[("disabled", MUTED)],
+        )
         style.configure("App.TCheckbutton", background=BACKGROUND, foreground=FOREGROUND)
         style.map(
             "App.TCheckbutton",
             background=[("active", BACKGROUND), ("disabled", BACKGROUND)],
-            foreground=[("disabled", "#8A8A84")],
+            foreground=[("disabled", MUTED)],
         )
         style.configure("Treeview", rowheight=22, fieldbackground=FIELD, background=FIELD, foreground=FOREGROUND)
-        style.configure("Treeview.Heading", padding=4)
+        style.configure("Treeview.Heading", padding=4, background=PANEL, foreground=FOREGROUND)
+        style.map("Treeview.Heading", background=[("active", ACCENT_SOFT)])
     return _ROOT
 
 
-def text(value, background=None, width=None):
-    return {"type": "text", "text": value, "background": background, "width": width}
+def text(value, background=None, width=None, muted=False, heading=False):
+    return {
+        "type": "text",
+        "text": value,
+        "background": background,
+        "width": width,
+        "muted": muted,
+        "heading": heading,
+    }
 
 
-def button(label, key=None, disabled=False):
-    return {"type": "button", "text": label, "key": key or label, "disabled": disabled}
+def button(label, key=None, disabled=False, accent=False):
+    return {
+        "type": "button",
+        "text": label,
+        "key": key or label,
+        "disabled": disabled,
+        "accent": accent,
+    }
+
+
+def tool_card(title, description, key=None):
+    return {
+        "type": "tool_card",
+        "text": title,
+        "description": description,
+        "key": key or title,
+    }
 
 
 def input_box(key, default="", enable_events=False, width=48, expand=False):
@@ -212,11 +262,12 @@ class AppWindow:
         self.top.protocol("WM_DELETE_WINDOW", self._on_close)
 
         self.body = tk.Frame(self.top, bg=BACKGROUND)
-        self.body.pack(fill="both", expand=True, padx=10, pady=10)
+        self.body.pack(fill="both", expand=True, padx=18, pady=16)
         for row in layout:
             row_frame = tk.Frame(self.body, bg=BACKGROUND)
             grows = _contains_type(row, ("table", "multiline"))
-            row_frame.pack(fill="both" if grows else "x", expand=grows, pady=2)
+            stretch = grows or _contains_type(row, ("tool_card",))
+            row_frame.pack(fill="both" if grows else "x", expand=grows, pady=3 if stretch else 2)
             self._build_row(row_frame, row)
 
         self.top.update_idletasks()
@@ -320,19 +371,31 @@ class AppWindow:
     def _place(self, parent, item):
         kind = item["type"]
         if kind == "text":
+            font = FONT_HEADING if item.get("heading") else FONT_UI
             label = tk.Label(
                 parent,
                 text=item["text"],
                 bg=item["background"] or BACKGROUND,
-                fg=FOREGROUND,
+                fg=MUTED if item.get("muted") else FOREGROUND,
                 anchor="w",
                 justify="left",
                 width=item["width"] or 0,
+                font=font,
+                wraplength=560 if item.get("muted") or item.get("heading") else 0,
             )
-            label.pack(side="left", padx=(0, 6))
+            label.pack(side="left", fill="x", expand=True, padx=(0, 6), pady=(0, 4) if item.get("heading") else 0)
+            return
+        if kind == "tool_card":
+            self._place_tool_card(parent, item)
             return
         if kind == "button":
-            btn = ttk.Button(parent, text=item["text"], style="App.TButton", command=lambda key=item["key"]: self._emit(key))
+            style_name = "Accent.TButton" if item.get("accent") else "App.TButton"
+            btn = ttk.Button(
+                parent,
+                text=item["text"],
+                style=style_name,
+                command=lambda key=item["key"]: self._emit(key),
+            )
             if item["disabled"]:
                 btn.configure(state="disabled")
             btn.pack(side="left", padx=3)
@@ -441,6 +504,43 @@ class AppWindow:
             if item["visible"]:
                 holder.pack(fill="both", expand=True, pady=4)
             self.elements[item["key"]] = Element("table", tree, holder=holder)
+
+    def _place_tool_card(self, parent, item):
+        card = tk.Frame(parent, bg=PANEL, highlightbackground=BORDER, highlightthickness=1, cursor="hand2")
+        card.pack(fill="x", pady=4)
+        accent = tk.Frame(card, bg=ACCENT, width=4)
+        accent.pack(side="left", fill="y")
+        content = tk.Frame(card, bg=PANEL)
+        content.pack(side="left", fill="both", expand=True, padx=14, pady=12)
+        title = tk.Label(
+            content,
+            text=item["text"],
+            bg=PANEL,
+            fg=FOREGROUND,
+            anchor="w",
+            font=FONT_UI_BOLD,
+            cursor="hand2",
+        )
+        title.pack(fill="x")
+        detail = tk.Label(
+            content,
+            text=item["description"],
+            bg=PANEL,
+            fg=MUTED,
+            anchor="w",
+            justify="left",
+            wraplength=520,
+            font=FONT_UI,
+            cursor="hand2",
+        )
+        detail.pack(fill="x", pady=(4, 0))
+
+        def activate(_event=None, key=item["key"]):
+            self._emit(key)
+
+        for widget in (card, content, title, detail, accent):
+            widget.bind("<Button-1>", activate)
+        self.elements[item["key"]] = Element("button", card)
 
     def _previous_input(self):
         inputs = [element for element in self.elements.values() if element.kind == "input"]
