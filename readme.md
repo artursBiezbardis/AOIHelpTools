@@ -11,7 +11,7 @@
 
 ## Windows
 
-The app is a desktop window and needs Python 3.11. The libraries in `requirements.txt` do not install on newer Python versions.
+The app is a desktop window built with tkinter, which is included with Python. It needs Python 3.11. The libraries in `requirements.txt` do not install on newer Python versions.
 
 1. Install Python 3.11 from https://www.python.org/downloads/release/python-3119/
    In the installer, leave **py launcher**, **Add python.exe to PATH**, and **tcl/tk and IDLE** selected.
